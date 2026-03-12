@@ -21,8 +21,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "quarterly", label: "Quarterly P&L" },
   { id: "profitability", label: "Profitability" },
   { id: "treasury", label: "Treasury & BS" },
-  { id: "capital_payout", label: "Capital & Payout" },
   { id: "efficiency", label: "Efficiency" },
+  { id: "capital_payout", label: "Capital & Payout" },
 ];
 
 export default function App() {

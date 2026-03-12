@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -26,10 +27,11 @@ interface Props {
 export default function Treasury({ annual, quarterly, entity }: Props) {
   const years = annual._metadata.years.map(String);
   const latestYear = years[years.length - 1];
+  const [selectedYear, setSelectedYear] = useState(latestYear);
   const quarters = quarterly.quarters;
 
   // Entity summary stats
-  const inv = annual.data[latestYear]?.[entity];
+  const inv = annual.data[selectedYear]?.[entity];
   const spread = (inv?.interest_spread_pct as number) ?? 0;
   const liqRatio = (inv?.liquidity_ratio_pct as number) ?? 0;
   const clientFunding = (inv?.client_funding_ratio_pct as number) ?? 0;
@@ -59,9 +61,9 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
     return { quarter: q, "Client Deposits": clientDep, "Interbank Deposits": interbankDep, "Other Liabilities": otherLiab, Equity: equity };
   });
 
-  // Funding structure for latest year — all entities (bar comparison)
+  // Funding structure for selected year — all entities (bar comparison)
   const fundingPeerData = ENTITY_NAMES.map((eName) => {
-    const d = annual.data[latestYear]?.[eName];
+    const d = annual.data[selectedYear]?.[eName];
     return {
       entity: eName,
       "Client Deposits": d?.client_deposits != null ? Math.abs(d.client_deposits as number) : 0,
@@ -74,6 +76,26 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* Year Selector */}
+      <div className="flex items-center gap-4">
+        <label className="text-sm text-slate-400 font-medium">Year:</label>
+        <div className="flex gap-1">
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => setSelectedYear(y)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                y === selectedYear
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -209,9 +231,9 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Client Funding Ratio Comparison */}
       <BarComparisonChart
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         metric="client_funding_ratio_pct"
-        title={`Client Funding Ratio — FY ${latestYear} (%)`}
+        title={`Client Funding Ratio — FY ${selectedYear} (%)`}
         formatValue={(v) => `${v.toFixed(1)}%`}
         highlightEntity={entity}
         matchTooltipValueColorToBar
@@ -220,9 +242,9 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Full Peer Table */}
       <PeerTable
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         highlightEntity={entity}
-        title={`Treasury & Balance Sheet — FY ${latestYear}`}
+        title={`Treasury & Balance Sheet — FY ${selectedYear}`}
         columns={[
           { key: "interest_spread_pct", label: "Spread", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
           { key: "earning_asset_yield_pct", label: "Earning Yield", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
