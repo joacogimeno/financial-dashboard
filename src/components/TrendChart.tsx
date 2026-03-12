@@ -11,6 +11,7 @@ import {
 import type { AnnualJSON, QuarterlyJSON, MetricKey, EntityName } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import { ENTITY_COLORS } from "../lib/colors";
+import ChartTooltip from "./ChartTooltip";
 
 interface Props {
   data: AnnualJSON | QuarterlyJSON;
@@ -59,20 +60,7 @@ export default function TrendChart({
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
           <XAxis dataKey="period" tick={{ fill: "#94a3b8", fontSize: 12 }} />
           <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => fmt(v)} />
-          <Tooltip
-            contentStyle={{
-              background: "#1e293b",
-              border: "1px solid #475569",
-              borderRadius: 8,
-              fontSize: 13,
-              color: "#e2e8f0",
-            }}
-            labelStyle={{ color: "#94a3b8", fontWeight: 600, marginBottom: 4 }}
-            formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-              value != null ? fmt(value) : "\u2014",
-              <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-            ]}
-          />
+          <Tooltip content={<ChartTooltip formatter={(v) => fmt(v)} />} />
           <Legend
             wrapperStyle={{ fontSize: 12, color: "#94a3b8" }}
             iconType="circle"
