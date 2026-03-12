@@ -10,12 +10,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import React from "react";
 import type { AnnualJSON, QuarterlyJSON, EntityName } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import TrendChart from "../components/TrendChart";
 import BarComparisonChart from "../components/BarComparisonChart";
 import PeerTable from "../components/PeerTable";
+import ChartTooltip from "../components/ChartTooltip";
 
 interface Props {
   annual: AnnualJSON;
@@ -70,12 +70,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
     };
   });
 
-  const tooltipStyle = { background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13, color: "#e2e8f0" };
-  const tooltipLabel = { color: "#94a3b8", marginBottom: 4 };
-  const eurFmt = (value: number | undefined, name: string | undefined, item: { color?: string }) => [
-    value != null ? `\u20AC${value.toFixed(0)}M` : "\u2014",
-    <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-  ] as [string, React.ReactElement];
+  const eurTooltip = <ChartTooltip formatter={(v) => `\u20AC${v.toFixed(0)}M`} />;
 
   return (
     <div className="space-y-8">
@@ -150,7 +145,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="quarter" tick={{ fill: "#94a3b8", fontSize: 11 }} interval={1} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
-            <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabel} formatter={eurFmt} />
+            <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Area type="monotone" dataKey="Cash" stackId="1" stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.7} />
             <Area type="monotone" dataKey="Securities" stackId="1" stroke="#34d399" fill="#34d399" fillOpacity={0.7} />
@@ -171,7 +166,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="quarter" tick={{ fill: "#94a3b8", fontSize: 11 }} interval={1} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
-            <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabel} formatter={eurFmt} />
+            <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Area type="monotone" dataKey="Client Deposits" stackId="1" stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.7} />
             <Area type="monotone" dataKey="Interbank Deposits" stackId="1" stroke="#f472b6" fill="#f472b6" fillOpacity={0.7} />
@@ -191,7 +186,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="entity" tick={{ fill: "#94a3b8", fontSize: 11 }} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
-            <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabel} formatter={eurFmt} />
+            <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Bar dataKey="Client Deposits" stackId="a" fill="#60a5fa" />
             <Bar dataKey="Interbank Deposits" stackId="a" fill="#f472b6" />

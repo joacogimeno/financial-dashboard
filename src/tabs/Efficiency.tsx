@@ -12,6 +12,7 @@ import type { AnnualJSON, EntityName } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import TrendChart from "../components/TrendChart";
 import PeerTable from "../components/PeerTable";
+import ChartTooltip from "../components/ChartTooltip";
 
 interface Props {
   annual: AnnualJSON;
@@ -126,14 +127,7 @@ export default function Efficiency({ annual, entity }: Props) {
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
-            <Tooltip
-              contentStyle={{ background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13, color: "#e2e8f0" }}
-              labelStyle={{ color: "#94a3b8", marginBottom: 4 }}
-              formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-                value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014",
-                <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-              ]}
-            />
+            <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(1)}M`} />} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Bar dataKey="Staff Costs" stackId="a" fill="#22d3ee" radius={[0, 0, 0, 0]} />
             <Bar dataKey="Other Admin" stackId="a" fill="#60a5fa" radius={[0, 0, 0, 0]} />

@@ -6,6 +6,7 @@ import {
 import type { AnnualJSON, EntityName } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import { ENTITY_COLORS, POSITIVE_COLOR, NEGATIVE_COLOR } from "../lib/colors";
+import ChartTooltip from "../components/ChartTooltip";
 import PeerTable from "../components/PeerTable";
 
 interface Props {
@@ -393,14 +394,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={tooltipLabel}
-                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-                  value != null ? `\u20AC${value.toFixed(0)}M` : "\u2014",
-                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-                ]}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(0)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} stackId="div" fill={ENTITY_COLORS[e]} opacity={e === entity ? 1 : 0.6} />
@@ -424,14 +418,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
                 tick={{ fill: "#94a3b8", fontSize: 11 }}
                 tickFormatter={(v) => `${v}%`}
               />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={tooltipLabel}
-                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-                  value != null ? `${value.toFixed(0)}%` : "N/A",
-                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-                ]}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => `${v.toFixed(0)}%`} />} />
               <ReferenceLine y={100} stroke="#f87171" strokeDasharray="4 2" label={{ value: "100%", fill: "#f87171", fontSize: 10, position: "right" }} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
@@ -485,14 +472,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
               <ReferenceLine y={0} stroke="#475569" />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={tooltipLabel}
-                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-                  value != null ? `\u20AC${value > 0 ? "+" : ""}${value.toFixed(0)}M` : "\u2014",
-                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-                ]}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v > 0 ? "+" : ""}${v.toFixed(0)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} radius={[3, 3, 0, 0]} opacity={e === entity ? 1 : 0.65}>
@@ -553,14 +533,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
               <ReferenceLine y={0} stroke="#475569" />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={tooltipLabel}
-                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
-                  value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014",
-                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
-                ]}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(1)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} fill={ENTITY_COLORS[e]} radius={[2, 2, 0, 0]} opacity={e === entity ? 1 : 0.6}>
