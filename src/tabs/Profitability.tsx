@@ -43,9 +43,9 @@ export default function Profitability({ annual, entity }: Props) {
         </div>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Net Profit</p>
-          <p className="text-2xl font-bold text-blue-300 mt-1">{`\u20AC${npEnd.toFixed(1)}M`}</p>
+          <p className="text-2xl font-bold text-blue-300 mt-1">{`€${npEnd.toFixed(1)}M`}</p>
           <p className="text-xs text-slate-500 mt-1">
-            from {`\u20AC${npStart.toFixed(1)}M`} in {earliest}
+            from {`€${npStart.toFixed(1)}M`} in {earliest}
           </p>
         </div>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -87,8 +87,8 @@ export default function Profitability({ annual, entity }: Props) {
         data={annual}
         year={latestYear}
         metric="net_profit"
-        title={`Net Profit Comparison — FY ${latestYear} (\u20ACM)`}
-        formatValue={(v) => `\u20AC${v.toFixed(0)}M`}
+        title={`Net Profit Comparison — FY ${latestYear} (€M)`}
+        formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
 
@@ -96,7 +96,7 @@ export default function Profitability({ annual, entity }: Props) {
       <TrendChart
         data={annual}
         metric="tangible_equity_ratio_pct"
-        title="Tangible Equity Ratio — (Equity \u2212 Intangibles) / Total Assets (%)"
+        title="Tangible Equity Ratio — (Equity − Intangibles) / Total Assets (%)"
         unit="%"
         formatValue={(v) => `${v.toFixed(1)}%`}
         highlightEntity={entity}
@@ -108,8 +108,8 @@ export default function Profitability({ annual, entity }: Props) {
         data={annual}
         year={latestYear}
         metric="tangible_equity"
-        title={`Tangible Equity Comparison — FY ${latestYear} (\u20ACM)`}
-        formatValue={(v) => `\u20AC${v.toFixed(0)}M`}
+        title={`Tangible Equity Comparison — FY ${latestYear} (€M)`}
+        formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
 
@@ -122,8 +122,8 @@ export default function Profitability({ annual, entity }: Props) {
         columns={[
           { key: "roe_pct", label: "ROE", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
           { key: "roa_pct", label: "ROA", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
-          { key: "net_profit", label: "Net Profit", format: (v) => `\u20AC${v.toFixed(1)}M`, higherIsBetter: true },
-          { key: "tangible_equity", label: "Tang. Equity", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },
+          { key: "tangible_equity", label: "Tang. Equity", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
           { key: "tangible_equity_ratio_pct", label: "TE Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
           { key: "effective_tax_rate_pct", label: "Eff. Tax Rate", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
         ]}

@@ -57,7 +57,7 @@ export function generateCommentary(
 
     const gapText = entity === bestCti
       ? `${entity} leads the peer group.`
-      : `${bestCti} leads at ${bestCtiVal.toFixed(1)}% \u2014 a ${gap.toFixed(0)}pp gap. Reducing admin cost growth below revenue growth is the primary path to C/I convergence.`;
+      : `${bestCti} leads at ${bestCtiVal.toFixed(1)}% — a ${gap.toFixed(0)}pp gap. Reducing admin cost growth below revenue growth is the primary path to C/I convergence.`;
 
     commentaries.push({
       type: totalImprovement > 5 ? "insight" : "warning",
@@ -90,13 +90,13 @@ export function generateCommentary(
     if (niiShare > 15) {
       const niiGrowth = niiEarliest !== 0 ? ((niiNow / niiEarliest - 1) * 100) : 999;
       const niiTrendText = niiYoY != null
-        ? `NII ${niiYoY >= 0 ? "grew" : "fell"} ${Math.abs(niiYoY).toFixed(0)}% YoY to \u20AC${niiNow.toFixed(1)}M`
-        : `NII stands at \u20AC${niiNow.toFixed(1)}M`;
+        ? `NII ${niiYoY >= 0 ? "grew" : "fell"} ${Math.abs(niiYoY).toFixed(0)}% YoY to €${niiNow.toFixed(1)}M`
+        : `NII stands at €${niiNow.toFixed(1)}M`;
       const sectorText = peerNiiDeclines.length >= 3
         ? `${peerNiiDeclines.length} of 5 peers saw NII decline YoY, confirming sector-wide rate cut impact.`
         : `Most peers maintained NII through balance sheet growth.`;
       const rateText = MACRO_CONTEXT.rateEnvironment === "cutting"
-        ? `ECB cuts have reduced the deposit rate to ~2.50% (${MACRO_CONTEXT.asOf}); further normalisation expected. Each additional -100bp represents ~\u20AC${(niiNow * 0.4).toFixed(0)}M at risk.`
+        ? `ECB cuts have reduced the deposit rate to ~2.50% (${MACRO_CONTEXT.asOf}); further normalisation expected. Each additional -100bp represents ~€${(niiNow * 0.4).toFixed(0)}M at risk.`
         : MACRO_CONTEXT.rateEnvironment === "hiking"
           ? `Current hiking cycle (${MACRO_CONTEXT.asOf}) provides NII tailwind, but liability repricing risk is growing.`
           : `Monitor NII sensitivity as rate cycle evolves (${MACRO_CONTEXT.asOf}).`;
@@ -112,7 +112,7 @@ export function generateCommentary(
       commentaries.push({
         type: "insight",
         title: "Revenue Resilience",
-        text: `NII accounts for only ${niiShare.toFixed(0)}% of ${entity}'s Gross Margin (\u20AC${niiNow.toFixed(1)}M of \u20AC${gmNow.toFixed(1)}M).${niiTrendText} This fee-dominated mix provides structural resilience in the current ECB cutting cycle \u2014 a competitive advantage relative to more rate-exposed peers.`,
+        text: `NII accounts for only ${niiShare.toFixed(0)}% of ${entity}'s Gross Margin (€${niiNow.toFixed(1)}M of €${gmNow.toFixed(1)}M).${niiTrendText} This fee-dominated mix provides structural resilience in the current ECB cutting cycle — a competitive advantage relative to more rate-exposed peers.`,
       });
     }
   }
@@ -147,7 +147,7 @@ export function generateCommentary(
     commentaries.push({
       type: "recommendation",
       title: "Strategic Positioning",
-      text: `${entity} ROE stands at ${roeNow.toFixed(1)}% (#${roePos}/${roeRank.length}), ${roeChange > 0 ? "up" : "down"} ${Math.abs(roeChange).toFixed(1)}pp YoY. ${leaderText} Net Fee Income grew ${nfiGrowth}% \u2014 the primary lever for ROE expansion.${jawsText} Priorities: (1) review the \u20AC${otherAdmin.toFixed(0)}M Other Admin cost line, (2) fee re-pricing on custody/platform services, (3) stress-test NII under further ECB normalisation.`,
+      text: `${entity} ROE stands at ${roeNow.toFixed(1)}% (#${roePos}/${roeRank.length}), ${roeChange > 0 ? "up" : "down"} ${Math.abs(roeChange).toFixed(1)}pp YoY. ${leaderText} Net Fee Income grew ${nfiGrowth}% — the primary lever for ROE expansion.${jawsText} Priorities: (1) review the €${otherAdmin.toFixed(0)}M Other Admin cost line, (2) fee re-pricing on custody/platform services, (3) stress-test NII under further ECB normalisation.`,
     });
   }
 
@@ -168,7 +168,7 @@ export function generateCommentary(
       commentaries.push({
         type: tpiPctGm > 10 ? "warning" : "insight",
         title: "Provisions & Impairments",
-        text: `${entity}'s total provisions and impairments are \u20AC${tpiNow.toFixed(1)}M (${tpiPctGm.toFixed(1)}% of Gross Margin), ${trendText}. ${tpiPctGm > 10 ? "This is a material drag on profitability \u2014 review the non-financial asset impairment schedule and intangible write-down policy." : "Monitor trend relative to asset book growth."}`,
+        text: `${entity}'s total provisions and impairments are €${tpiNow.toFixed(1)}M (${tpiPctGm.toFixed(1)}% of Gross Margin), ${trendText}. ${tpiPctGm > 10 ? "This is a material drag on profitability — review the non-financial asset impairment schedule and intangible write-down policy." : "Monitor trend relative to asset book growth."}`,
       });
     }
   }
@@ -193,17 +193,17 @@ export function generateCommentary(
       commentaries.push({
         type: "insight",
         title: "Capital Policy",
-        text: `${entity} pays no dividends — all earnings are retained. Equity ${eqGrowth != null ? `grew ${eqGrowth.toFixed(0)}% YoY to \u20AC${eqClose?.toFixed(0)}M` : `stands at \u20AC${eqClose?.toFixed(0)}M`}, driven by net profit and OCI. This supports balance sheet growth and regulatory capital without external issuance.`,
+        text: `${entity} pays no dividends — all earnings are retained. Equity ${eqGrowth != null ? `grew ${eqGrowth.toFixed(0)}% YoY to €${eqClose?.toFixed(0)}M` : `stands at €${eqClose?.toFixed(0)}M`}, driven by net profit and OCI. This supports balance sheet growth and regulatory capital without external issuance.`,
       });
     } else if (payoutNow != null && payoutNow >= 100) {
       // Payout exceeds earnings
       const capNote = capActions > 1
-        ? ` A \u20AC${capActions.toFixed(0)}M capital action (issuances/combinations) partially offset the distribution.`
+        ? ` A €${capActions.toFixed(0)}M capital action (issuances/combinations) partially offset the distribution.`
         : "";
       commentaries.push({
         type: payoutNow >= 300 ? "warning" : "insight",
         title: "Capital Policy",
-        text: `${entity} distributed \u20AC${divAbs.toFixed(0)}M in dividends against \u20AC${npVal?.toFixed(0) ?? "N/A"}M net profit — a payout ratio of ${payoutNow >= 999 ? ">999" : payoutNow.toFixed(0)}%. Equity ${eqClose != null && eqOpen != null && eqClose < eqOpen ? `contracted \u20AC${(eqOpen - eqClose).toFixed(0)}M YoY to \u20AC${eqClose.toFixed(0)}M` : `stands at \u20AC${eqClose?.toFixed(0)}M`}.${capNote} Assess whether this reflects a deliberate capital repatriation policy or a one-off.`,
+        text: `${entity} distributed €${divAbs.toFixed(0)}M in dividends against €${npVal?.toFixed(0) ?? "N/A"}M net profit — a payout ratio of ${payoutNow >= 999 ? ">999" : payoutNow.toFixed(0)}%. Equity ${eqClose != null && eqOpen != null && eqClose < eqOpen ? `contracted €${(eqOpen - eqClose).toFixed(0)}M YoY to €${eqClose.toFixed(0)}M` : `stands at €${eqClose?.toFixed(0)}M`}.${capNote} Assess whether this reflects a deliberate capital repatriation policy or a one-off.`,
       });
     } else if (payoutNow != null) {
       // Normal payout
@@ -211,7 +211,7 @@ export function generateCommentary(
       commentaries.push({
         type: "insight",
         title: "Capital Policy",
-        text: `${entity} paid \u20AC${divAbs.toFixed(0)}M in dividends (${payoutNow.toFixed(0)}% payout), retaining \u20AC${retainedVal?.toFixed(0) ?? "N/A"}M. ${payoutNow > 75 ? "High payout leaves limited retained earnings for reinvestment — monitor capital adequacy under stress." : "Balanced payout preserves capital for growth while rewarding shareholders."}`,
+        text: `${entity} paid €${divAbs.toFixed(0)}M in dividends (${payoutNow.toFixed(0)}% payout), retaining €${retainedVal?.toFixed(0) ?? "N/A"}M. ${payoutNow > 75 ? "High payout leaves limited retained earnings for reinvestment — monitor capital adequacy under stress." : "Balanced payout preserves capital for growth while rewarding shareholders."}`,
       });
     }
   }
@@ -224,7 +224,7 @@ export function generateCommentary(
     commentaries.push({
       type: ociPct < -5 ? "warning" : "insight",
       title: "OCI Mark-to-Market",
-      text: `Other Comprehensive Income was \u20AC${ociNow.toFixed(1)}M (${ociPct.toFixed(1)}% of equity) in ${latest} — a${Math.abs(ociPct) > 8 ? " material" : " notable"} mark-to-market ${ociNow >= 0 ? "gain" : "loss"}. This is primarily driven by FVOCI securities and hedging positions. ${ociNow < 0 ? "Large negative OCI compresses reported equity and tangible equity ratios without affecting P&L." : "The gain strengthens equity, but can reverse if rates or credit spreads move."}`,
+      text: `Other Comprehensive Income was €${ociNow.toFixed(1)}M (${ociPct.toFixed(1)}% of equity) in ${latest} — a${Math.abs(ociPct) > 8 ? " material" : " notable"} mark-to-market ${ociNow >= 0 ? "gain" : "loss"}. This is primarily driven by FVOCI securities and hedging positions. ${ociNow < 0 ? "Large negative OCI compresses reported equity and tangible equity ratios without affecting P&L." : "The gain strengthens equity, but can reverse if rates or credit spreads move."}`,
     });
   }
 
@@ -240,13 +240,13 @@ export function generateCommentary(
       commentaries.push({
         type: "insight",
         title: "Capital Base Movement",
-        text: `Equity grew ${equityGrowth.toFixed(0)}% YoY to \u20AC${equityNow.toFixed(0)}M, diluting the ROE denominator. On the prior-year equity base, ROE would have been ${impliedRoeOnPriorEquity.toFixed(1)}% vs reported ${val(data, latest, entity, "roe_pct")?.toFixed(1) ?? "N/A"}%. Assess whether the capital increase is earmarked for growth deployment or is regulatory-driven.`,
+        text: `Equity grew ${equityGrowth.toFixed(0)}% YoY to €${equityNow.toFixed(0)}M, diluting the ROE denominator. On the prior-year equity base, ROE would have been ${impliedRoeOnPriorEquity.toFixed(1)}% vs reported ${val(data, latest, entity, "roe_pct")?.toFixed(1) ?? "N/A"}%. Assess whether the capital increase is earmarked for growth deployment or is regulatory-driven.`,
       });
     } else if (equityGrowth < -15) {
       commentaries.push({
         type: "warning",
         title: "Capital Reduction",
-        text: `Equity contracted ${Math.abs(equityGrowth).toFixed(0)}% YoY to \u20AC${equityNow.toFixed(0)}M. This boosts reported ROE mechanically but warrants scrutiny \u2014 confirm whether the reduction reflects dividends/buybacks, losses, or goodwill write-downs.`,
+        text: `Equity contracted ${Math.abs(equityGrowth).toFixed(0)}% YoY to €${equityNow.toFixed(0)}M. This boosts reported ROE mechanically but warrants scrutiny — confirm whether the reduction reflects dividends/buybacks, losses, or goodwill write-downs.`,
       });
     }
   }

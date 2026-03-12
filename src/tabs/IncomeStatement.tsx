@@ -44,10 +44,10 @@ const PL_ROWS: PLRow[] = [
 ];
 
 function fmtVal(v: number | null | undefined, key: MetricKey | null): string {
-  if (v == null) return "\u2014";
+  if (v == null) return "—";
   if (key === "effective_tax_rate_pct") return `${v.toFixed(1)}%`;
   if (key === "cost_of_risk_bps") return `${v.toFixed(1)}`;
-  return `\u20AC${v.toFixed(1)}M`;
+  return `€${v.toFixed(1)}M`;
 }
 
 function yoyPct(curr: number | null | undefined, prev: number | null | undefined): string | null {
@@ -76,21 +76,21 @@ export default function IncomeStatement({ annual, entity }: Props) {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Fee Mix</p>
           <p className="text-2xl font-bold text-blue-300 mt-1">
-            {feeMix != null ? `${feeMix.toFixed(1)}%` : "\u2014"}
+            {feeMix != null ? `${feeMix.toFixed(1)}%` : "—"}
           </p>
           <p className="text-xs text-slate-500 mt-1">Net Fee Income / Gross Margin</p>
         </div>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Cost-to-Income</p>
           <p className="text-2xl font-bold text-blue-300 mt-1">
-            {costToIncome != null ? `${costToIncome.toFixed(1)}%` : "\u2014"}
+            {costToIncome != null ? `${costToIncome.toFixed(1)}%` : "—"}
           </p>
           <p className="text-xs text-slate-500 mt-1">(|Admin| + |D&A|) / Gross Margin</p>
         </div>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Operating Leverage (Jaws)</p>
           <p className={`text-2xl font-bold mt-1 ${jaws != null && jaws >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-            {jaws != null ? `${jaws >= 0 ? "+" : ""}${jaws.toFixed(1)}pp` : "\u2014"}
+            {jaws != null ? `${jaws >= 0 ? "+" : ""}${jaws.toFixed(1)}pp` : "—"}
           </p>
           <p className="text-xs text-slate-500 mt-1">YoY Gross Margin growth - YoY operating cost growth</p>
         </div>
@@ -100,7 +100,7 @@ export default function IncomeStatement({ annual, entity }: Props) {
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-700/50">
           <h3 className="text-sm font-semibold text-slate-300">
-            {entity} — Income Statement ({years[0]}\u2013{latestYear})
+            {entity} — Income Statement ({years[0]}–{latestYear})
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -180,7 +180,7 @@ export default function IncomeStatement({ annual, entity }: Props) {
                           {yoy}
                         </span>
                       ) : (
-                        "\u2014"
+                        "—"
                       )}
                     </td>
                   </tr>
@@ -196,9 +196,9 @@ export default function IncomeStatement({ annual, entity }: Props) {
         <TrendChart
           data={annual}
           metric="total_provisions_impairments"
-          title="Total Provisions & Impairments (\u20ACM)"
+          title="Total Provisions & Impairments (€M)"
           unit="M"
-          formatValue={(v) => `\u20AC${v.toFixed(1)}M`}
+          formatValue={(v) => `€${v.toFixed(1)}M`}
           highlightEntity={entity}
         />
         <TrendChart
@@ -216,14 +216,14 @@ export default function IncomeStatement({ annual, entity }: Props) {
         data={annual}
         year={latestYear}
         highlightEntity={entity}
-        title={`Peer P&L Comparison \u2014 FY ${latestYear}`}
+        title={`Peer P&L Comparison — FY ${latestYear}`}
         columns={[
-          { key: "gross_margin", label: "Gross Margin", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
-          { key: "net_operating_income", label: "Op. Profit", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
-          { key: "total_provisions_impairments", label: "Prov. & Imp.", format: (v) => `\u20AC${v.toFixed(1)}M`, higherIsBetter: false },
-          { key: "pre_tax_profit", label: "Pre-Tax", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "gross_margin", label: "Gross Margin", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "net_operating_income", label: "Op. Profit", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "total_provisions_impairments", label: "Prov. & Imp.", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: false },
+          { key: "pre_tax_profit", label: "Pre-Tax", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
           { key: "effective_tax_rate_pct", label: "Tax Rate", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
-          { key: "net_profit", label: "Net Profit", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
         ]}
       />
 
@@ -232,17 +232,17 @@ export default function IncomeStatement({ annual, entity }: Props) {
         <TrendChart
           data={annual}
           metric="net_fee_income"
-          title="Net Fee Income Trend (\u20ACM)"
+          title="Net Fee Income Trend (€M)"
           unit="M"
-          formatValue={(v) => `\u20AC${v.toFixed(0)}M`}
+          formatValue={(v) => `€${v.toFixed(0)}M`}
           highlightEntity={entity}
         />
         <TrendChart
           data={annual}
           metric="nii"
-          title="Net Interest Income Trend (\u20ACM)"
+          title="Net Interest Income Trend (€M)"
           unit="M"
-          formatValue={(v) => `\u20AC${v.toFixed(0)}M`}
+          formatValue={(v) => `€${v.toFixed(0)}M`}
           highlightEntity={entity}
         />
       </div>
@@ -251,7 +251,7 @@ export default function IncomeStatement({ annual, entity }: Props) {
       <TrendChart
         data={annual}
         metric="fee_mix_pct"
-        title="Fee Revenue Mix \u2014 Net Fee Income as % of Gross Margin"
+        title="Fee Revenue Mix — Net Fee Income as % of Gross Margin"
         unit="%"
         formatValue={(v) => `${v.toFixed(0)}%`}
         highlightEntity={entity}

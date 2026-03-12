@@ -25,16 +25,16 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
     label: string;
     format: (v: number) => string;
   }[] = [
-    { key: "nii", label: "Net Interest Income", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "net_fee_income", label: "Net Fee Income", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "gross_margin", label: "Gross Margin", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "admin_expenses", label: "Admin Expenses", format: (v) => `\u20AC${Math.abs(v).toFixed(1)}M` },
-    { key: "net_operating_income", label: "Operating Profit", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "provisions", label: "Provisions", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "total_provisions_impairments", label: "Prov. & Impairm.", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "pre_tax_profit", label: "Pre-Tax Profit", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "tax_charge", label: "Tax", format: (v) => `\u20AC${v.toFixed(1)}M` },
-    { key: "net_profit", label: "Net Profit", format: (v) => `\u20AC${v.toFixed(1)}M` },
+    { key: "nii", label: "Net Interest Income", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "net_fee_income", label: "Net Fee Income", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "gross_margin", label: "Gross Margin", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "admin_expenses", label: "Admin Expenses", format: (v) => `€${Math.abs(v).toFixed(1)}M` },
+    { key: "net_operating_income", label: "Operating Profit", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "provisions", label: "Provisions", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "total_provisions_impairments", label: "Prov. & Impairm.", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "pre_tax_profit", label: "Pre-Tax Profit", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "tax_charge", label: "Tax", format: (v) => `€${v.toFixed(1)}M` },
+    { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(1)}M` },
     { key: "cost_to_income_pct", label: "Cost-to-Income", format: (v) => `${v.toFixed(1)}%` },
     { key: "roe_pct", label: "ROE (annualized est.)", format: (v) => `${v.toFixed(1)}%` },
   ];
@@ -115,7 +115,7 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
                           isHighlighted ? "text-blue-200 font-semibold bg-blue-950/20" : "text-slate-300"
                         }`}
                       >
-                        {v != null ? m.format(v) : "\u2014"}
+                        {v != null ? m.format(v) : "—"}
                         {qoq != null && (
                           <span
                             className="ml-1.5 text-[10px]"
@@ -140,8 +140,8 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
         <TrendChart
           data={quarterly}
           metric="gross_margin"
-          title="Gross Margin by Quarter (\u20ACM)"
-          formatValue={(v) => `\u20AC${v.toFixed(0)}M`}
+          title="Gross Margin by Quarter (€M)"
+          formatValue={(v) => `€${v.toFixed(0)}M`}
           highlightEntity={entity}
           height={260}
         />

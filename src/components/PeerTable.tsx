@@ -85,7 +85,7 @@ export default function PeerTable({ data, year, columns, title, highlightEntity 
                         }`}
                       >
                         <span className={isBest ? "text-emerald-400" : isWorst ? "text-red-400" : ""}>
-                          {v != null ? col.format(v) : "\u2014"}
+                          {v != null ? col.format(v) : "—"}
                         </span>
                         {isBest && <span className="ml-1.5 text-[10px] text-emerald-500">#1</span>}
                       </td>
