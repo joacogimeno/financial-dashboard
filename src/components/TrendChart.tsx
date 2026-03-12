@@ -65,9 +65,13 @@ export default function TrendChart({
               border: "1px solid #475569",
               borderRadius: 8,
               fontSize: 13,
+              color: "#e2e8f0",
             }}
-            labelStyle={{ color: "#e2e8f0", fontWeight: 600, marginBottom: 4 }}
-            formatter={(value: number | undefined, name: string | undefined) => [value != null ? fmt(value) : "\u2014", name ?? ""] as [string, string]}
+            labelStyle={{ color: "#94a3b8", fontWeight: 600, marginBottom: 4 }}
+            formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+              value != null ? fmt(value) : "\u2014",
+              <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+            ]}
           />
           <Legend
             wrapperStyle={{ fontSize: 12, color: "#94a3b8" }}
