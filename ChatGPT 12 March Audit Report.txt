@@ -1,0 +1,334 @@
+CFO DASHBOARD CODE REVIEW AND AUDIT REPORT
+Prepared by: ChatGPT
+Prepared on: 12 March 2026
+Repository audited: /Users/joaco/cfo-dashboard
+Data source inspected: /Users/joaco/inversis-dashboard/Financial data
+
+====================================================================
+1) EXECUTIVE SUMMARY
+====================================================================
+
+This audit reviewed the React/TypeScript financial dashboard implementation, the extraction pipeline that produces annual and quarterly JSON datasets, and the raw BdE XLS source files used as input.
+
+Overall conclusion:
+- The dashboard architecture and UI composition are generally solid and readable.
+- The most material risk is in quarterly data derivation logic, where correctly differenced values can be overwritten during recomputation, producing implausible Q4 values for key metrics.
+- There are additional maintainability and data-integrity risks (null-to-zero coercion, fragile extraction matching, stale narrative text, missing process controls) that are important for a dashboard expected to update quarterly.
+
+Priority assessment:
+- High severity: 3 findings
+- Medium severity: 4 findings
+- Low severity: 3 findings
+
+Most critical immediate action:
+- Fix quarterly post-differencing recomputation behavior in extract/extract_bde.py before the next publication cycle.
+
+====================================================================
+2) SCOPE AND METHOD
+====================================================================
+
+In-scope:
+- Application source code (src/*)
+- Data extraction script (extract/extract_bde.py)
+- Generated datasets (src/data/annual.json, src/data/quarterly.json)
+- Raw BdE source XLS files in /Users/joaco/inversis-dashboard/Financial data
+- Static checks (eslint, TypeScript typecheck)
+
+Out-of-scope:
+- Infrastructure/deployment environment
+- Authentication/authorization concerns
+- Production monitoring/alerting setup (not present in repository)
+
+Audit method:
+1. Static code walkthrough of all tabs/components/lib modules.
+2. Verification of extraction logic and derived-metric formulas.
+3. Data quality checks on generated annual/quarterly JSON.
+4. Reconciliation-style tests (quarter sums vs annual consistency where appropriate).
+5. Direct inspection of raw BdE files (not only generated JSON) to validate source semantics.
+
+Commands/checks performed:
+- npm run lint
+- npx tsc --noEmit -p tsconfig.app.json
+- Targeted script-based checks for missingness, formula consistency, and reconciliations.
+- Direct pandas/openpyxl inspection of 4701 files across 2024 quarters.
+
+====================================================================
+3) DETAILED FINDINGS
+====================================================================
+
+--------------------------------------------------
+Finding 1 (HIGH)
+Quarterly Q4 values can be materially distorted by post-differencing recomputation
+--------------------------------------------------
+
+What was found:
+- Quarterly data is first correctly isolated from YTD via subtraction.
+- Then compute_ratios() is run over isolated quarterly values.
+- compute_ratios() recomputes net_fee_income using absolute fee_expenses and recomputes trading_and_other from gross margin identity.
+- This can overwrite correctly differenced quarter values and create implausible results.
+
+Code evidence:
+- Quarterly isolation + recomputation: extract/extract_bde.py lines ~396-433.
+- Recompute of net_fee_income: extract/extract_bde.py lines ~155-160.
+- Recompute of trading_and_other: extract/extract_bde.py lines ~245-250.
+
+Data evidence (validated against raw BdE 4701):
+- In src/data/quarterly.json for 2024-Q4:
+  - Inversis net_fee_income = -163.56, trading_and_other = 182.88
+  - Allfunds net_fee_income = -3439.05, trading_and_other = 3575.30
+- Raw 4701 YTD values show the implied standalone Q4 net fee income should be positive:
+  - Inversis: (2024YTD NFI 60.75) - (Q3YTD NFI 44.38) = +16.38
+  - Allfunds: (2024YTD NFI 496.30) - (Q3YTD NFI 361.73) = +134.57
+
+Impact:
+- Quarterly profitability, trend charts, and quarter-over-quarter analysis may be materially incorrect.
+- Executive reporting decisions based on quarterly values may be biased.
+
+Recommendation:
+- Do not recompute base YTD-derived metrics after quarterly differencing for sensitive lines.
+- Preserve differenced net_fee_income/trading_and_other values as authoritative.
+- Add hard-fail reconciliation checks in pipeline: Q1+Q2+Q3+Q4 should approximate annual for selected P&L metrics.
+
+
+--------------------------------------------------
+Finding 2 (HIGH)
+P&L extraction allows silent overwrites from duplicate label matches
+--------------------------------------------------
+
+What was found:
+- In extract_pl(), if multiple rows start with the same keyword pattern, later rows overwrite previously extracted values.
+- No “first valid match only” protection for P&L extraction.
+
+Code evidence:
+- extract/extract_bde.py lines ~102-113.
+- Contrast: BS extraction has matched tracking lines ~123-147.
+
+Impact:
+- Incorrect line mapping can silently enter output JSON without pipeline failure.
+- Risk grows when BdE templates evolve or row labels repeat with alternative sections.
+
+Recommendation:
+- Add matched-set semantics in extract_pl() similar to extract_bs().
+- If duplicate candidates are found, log and fail extraction unless explicitly configured.
+
+
+--------------------------------------------------
+Finding 3 (HIGH)
+Entity-column detection is brittle under template/header variation
+--------------------------------------------------
+
+What was found:
+- Column selection is based on first header hit in row 2 for each entity prefix.
+- This assumes one unique match and stable formatting forever.
+
+Code evidence:
+- extract/extract_bde.py lines ~84-93.
+
+Impact:
+- If BdE introduces additional columns (comparative periods, alternate statement variants), extraction may bind to wrong columns silently.
+
+Recommendation:
+- Validate exact one-to-one mapping for each entity.
+- Add structural assertions (expected header shape, period/date checks, deterministic column uniqueness).
+- Fail fast on ambiguity.
+
+
+--------------------------------------------------
+Finding 4 (MEDIUM)
+Missing data is often converted to zero in UI, masking data quality issues
+--------------------------------------------------
+
+What was found:
+- Several UI paths use nullish-coalescing to 0 for financial values.
+- This makes missing data appear as true zero performance.
+
+Examples:
+- src/components/BarComparisonChart.tsx line ~39
+- src/components/KPICard.tsx line ~40
+- src/tabs/Treasury.tsx lines ~41-57
+- src/tabs/Profitability.tsx lines ~17-21, ~59
+
+Impact:
+- Rankings, comparisons, and trend interpretation can be skewed.
+- Users cannot distinguish “no data” from “zero value.”
+
+Recommendation:
+- Preserve nulls end-to-end and render explicit N/A states.
+- Exclude nulls from rankings/statistics instead of coercing to zero.
+
+
+--------------------------------------------------
+Finding 5 (MEDIUM)
+Static build-time data loading reduces true dashboard dynamism
+--------------------------------------------------
+
+What was found:
+- Data is imported from local JSON at build time and force-cast to types.
+
+Code evidence:
+- src/App.tsx lines ~5-6, ~14-15.
+
+Impact:
+- Data refresh requires rebuild/redeploy.
+- No runtime validation or graceful handling of malformed payloads.
+
+Recommendation:
+- Move to runtime data fetch (API/static endpoint) with schema validation.
+- Add user-visible data health status and extraction timestamp.
+
+
+--------------------------------------------------
+Finding 6 (MEDIUM)
+Entity universe is hardcoded, increasing maintenance cost for peer changes
+--------------------------------------------------
+
+What was found:
+- ENTITY_NAMES is statically declared and reused throughout UI logic.
+
+Code evidence:
+- src/lib/types.ts line ~1.
+
+Impact:
+- Adding/removing peers requires code edits across app.
+- Potential drift between metadata and UI behavior.
+
+Recommendation:
+- Source entity list from dataset metadata.
+- Keep color maps configurable with safe defaults.
+
+
+--------------------------------------------------
+Finding 7 (MEDIUM)
+Executive Summary uses mixed year context in same tab
+--------------------------------------------------
+
+What was found:
+- KPI cards use selectedYear.
+- Peer table remains pinned to latestYear.
+
+Code evidence:
+- src/tabs/ExecutiveSummary.tsx lines ~17 and ~76-80.
+
+Impact:
+- User may compare cards from one year against a table from another without realizing.
+
+Recommendation:
+- Bind all tab widgets to one selected year, or clearly label intentionally fixed sections.
+
+
+--------------------------------------------------
+Finding 8 (LOW)
+Macro narrative text can become stale between quarterly updates
+--------------------------------------------------
+
+What was found:
+- Commentary includes macro assumptions and static phrasing (e.g., rate-cycle statements).
+
+Code evidence:
+- src/lib/commentary.ts around line ~70.
+
+Impact:
+- Narrative may conflict with actual current macro context despite updated data.
+
+Recommendation:
+- Add assumption date and configurable macro context inputs.
+- Suppress macro-specific language when assumptions are stale.
+
+
+--------------------------------------------------
+Finding 9 (LOW)
+Lint gate currently failing due to explicit any usage
+--------------------------------------------------
+
+What was found:
+- npm run lint reports 5 errors for explicit any in chart tooltip formatters.
+
+Files/locations:
+- src/components/TrendChart.tsx line ~70
+- src/components/WaterfallChart.tsx lines ~131, ~138
+- src/tabs/Efficiency.tsx line ~121
+- src/tabs/Treasury.tsx line ~74
+
+Impact:
+- Quality gate is noisy/failing.
+- Typing regressions more likely to pass unnoticed.
+
+Recommendation:
+- Replace any with precise Recharts formatter typings.
+- Enforce lint/typecheck in CI prior to publish.
+
+
+--------------------------------------------------
+Finding 10 (LOW)
+Quarterly operational process controls are not documented in-repo
+--------------------------------------------------
+
+What was found:
+- README is template-level and does not include quarterly runbook, validation checklist, or data acceptance criteria.
+- No repository tests for extraction/data-quality controls.
+
+Impact:
+- Update process is person-dependent and error-prone.
+
+Recommendation:
+- Add quarterly runbook and automated QA checks.
+- Minimum controls: extraction smoke test, reconciliation checks, missingness thresholds, outlier/sign anomaly checks.
+
+====================================================================
+4) OBSERVATIONS (NON-FINDING)
+====================================================================
+
+- TypeScript strict mode is enabled; typecheck passed.
+- Annual derived formulas are internally consistent within tested tolerance.
+- Quarterly timeline coverage is coherent: 2021-Q4 through 2025-Q3.
+- Core UI structure is modular and readable, with clear tab/component separation.
+
+====================================================================
+5) RAW DATA SOURCE VALIDATION NOTES
+====================================================================
+
+To verify whether issues came from raw source vs transformation:
+- 4701 files were inspected directly for 202403, 202406, 202409, 202412.
+- For Inversis and Allfunds, 2024 Q4 YTD “Ingresos por comisiones” and “(Gastos por comisiones)” drop sharply vs Q3 YTD, but remain positive in raw data.
+- Implied standalone Q4 net_fee_income from raw YTD differentials is positive for both entities.
+- Therefore, the negative Q4 net_fee_income in quarterly.json is attributable to transformation logic, not random source corruption.
+
+====================================================================
+6) PRIORITIZED REMEDIATION PLAN
+====================================================================
+
+Phase 1 (Immediate, before next quarterly publish)
+1. Fix quarterly recomputation overwrite for net_fee_income/trading_and_other.
+2. Add reconciliation tests between quarterly standalone and annual totals.
+3. Add fail-fast duplicate match handling in P&L extraction.
+
+Phase 2 (Short term)
+4. Implement strict extraction schema/header validations.
+5. Remove null-to-zero coercion in UI for financial metrics.
+6. Align year context across Executive Summary widgets.
+
+Phase 3 (Medium term)
+7. Introduce runtime data validation and metadata-driven entity handling.
+8. Parameterize macro narrative assumptions.
+9. Integrate lint/typecheck/data-QA into CI pipeline.
+10. Add maintainers’ quarterly runbook and checklists.
+
+====================================================================
+7) RISK REGISTER SNAPSHOT
+====================================================================
+
+- Data Integrity Risk: HIGH
+  Driver: quarterly post-processing overwrite and extraction ambiguity.
+
+- Reporting Interpretation Risk: MEDIUM-HIGH
+  Driver: null-to-zero coercion and mixed-year views.
+
+- Maintainability/Process Risk: MEDIUM
+  Driver: static entity wiring and missing operational runbook.
+
+====================================================================
+8) AUDIT CONCLUSION
+====================================================================
+
+The dashboard is a strong foundation for executive financial analytics, but quarterly reliability depends on tightening the extraction-and-validation pipeline. Correcting the Q4 transformation behavior and introducing hard data-quality gates should be treated as mandatory before relying on quarterly outputs for decision-grade reporting.
+
