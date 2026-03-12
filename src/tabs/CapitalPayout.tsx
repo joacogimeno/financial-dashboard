@@ -372,9 +372,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
                 >
                   <span className="text-slate-300 w-20">{row.entity}</span>
                   <span className="text-slate-400">
-                    \u20AC{row.hasData ? (row.dividends?.toFixed(0) ?? "0") : "N/A"}M div
+                    €{row.hasData ? (row.dividends?.toFixed(0) ?? "0") : "N/A"}M div
                   </span>
-                  <span className="text-slate-400">\u20AC{row.netProfit?.toFixed(0) ?? "N/A"}M profit</span>
+                  <span className="text-slate-400">€{row.netProfit?.toFixed(0) ?? "N/A"}M profit</span>
                   <span className={isOver100 ? "text-red-400 font-semibold" : row.hasData ? "text-slate-300" : "text-slate-500"}>
                     {payoutDisplay}
                   </span>
@@ -448,7 +448,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
         ) > 0.1;
       })) && (
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
-          <h3 className="text-sm font-semibold text-slate-300 mb-1">Capital Actions — Issuances & Business Combinations (\u20ACM)</h3>
+          <h3 className="text-sm font-semibold text-slate-300 mb-1">Capital Actions — Issuances & Business Combinations (€M)</h3>
           <p className="text-[10px] text-slate-500 mb-4">
             Includes ordinary share issuances, other equity instruments, and equity recognised from business combinations.
             Negative values indicate capital reductions or buybacks.
@@ -475,7 +475,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v > 0 ? "+" : ""}${v.toFixed(0)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
-                <Bar key={e} dataKey={e} radius={[3, 3, 0, 0]} opacity={e === entity ? 1 : 0.65}>
+                <Bar key={e} dataKey={e} fill={ENTITY_COLORS[e]} radius={[3, 3, 0, 0]} opacity={e === entity ? 1 : 0.65}>
                   {years.map((y, i) => {
                     const ed = annual.data[y]?.[e];
                     const total = ((ed?.capital_increase as number) ?? 0)
