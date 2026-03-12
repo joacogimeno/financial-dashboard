@@ -30,7 +30,7 @@ export default function ChartTooltip({ active, payload, label, formatter }: Prop
       {visible.map((entry, i) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 24, padding: "2px 0" }}>
           <span style={{ color: entry.color ?? "#94a3b8" }}>{entry.name}</span>
-          <span style={{ color: "#e2e8f0", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+          <span style={{ color: entry.color ?? "#e2e8f0", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
             {formatter && entry.value != null
               ? formatter(entry.value, entry.name ?? "")
               : entry.value}
