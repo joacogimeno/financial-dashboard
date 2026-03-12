@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { AnnualJSON, EntityName, EntityMetrics, MetricKey } from "../lib/types";
 import WaterfallChart from "../components/WaterfallChart";
 import TrendChart from "../components/TrendChart";
@@ -14,7 +15,8 @@ interface PLRow {
   indent?: boolean;
   isSubtotal?: boolean;
   isSeparator?: boolean;
-  negate?: boolean; // show parentheses for expense items
+  negate?: boolean;
+  compute?: (d: EntityMetrics) => number | null;
 }
 
 const PL_ROWS: PLRow[] = [
@@ -27,8 +29,19 @@ const PL_ROWS: PLRow[] = [
   { key: "admin_expenses", label: "(Admin Expenses)", negate: true },
   { key: "staff_costs", label: "of which: Staff Costs", indent: true, negate: true },
   { key: "other_admin", label: "of which: Other Admin", indent: true, negate: true },
-  { key: "depreciation", label: "(Depreciation)", negate: true },
-  { key: "net_operating_income", label: "NET OPERATING INCOME", isSubtotal: true },
+  {
+    key: null,
+    label: "EBITDA",
+    isSubtotal: true,
+    compute: (d) => {
+      const noi = d.net_operating_income as number | null | undefined;
+      const dep = d.depreciation as number | null | undefined;
+      if (noi == null || dep == null) return null;
+      return noi + Math.abs(dep);
+    },
+  },
+  { key: "depreciation", label: "(Depreciation & Amort.)", negate: true, indent: true },
+  { key: "net_operating_income", label: "NET OPERATING INCOME (EBIT)", isSubtotal: true },
   { key: "provisions", label: "(Provisions)", negate: true },
   { key: "impairment_financial_assets", label: "(Impairment Fin. Assets)", negate: true },
   { key: "impairment_subsidiaries", label: "(Impairment Subsidiaries)", negate: true },
@@ -59,20 +72,45 @@ function yoyPct(curr: number | null | undefined, prev: number | null | undefined
 export default function IncomeStatement({ annual, entity }: Props) {
   const years = annual._metadata.years.map(String);
   const latestYear = years[years.length - 1];
-  const latestData = annual.data[latestYear]?.[entity] ?? ({} as EntityMetrics);
+  const [selectedYear, setSelectedYear] = useState(latestYear);
+  const selectedData = annual.data[selectedYear]?.[entity] ?? ({} as EntityMetrics);
 
   // Summary cards
-  const feeMix = latestData.fee_mix_pct;
-  const costToIncome = latestData.cost_to_income_pct;
-  const jaws = latestData.jaws_ratio;
+  const feeMix = selectedData.fee_mix_pct;
+  const costToIncome = selectedData.cost_to_income_pct;
+  const jaws = selectedData.jaws_ratio;
+  const ebitda =
+    selectedData.net_operating_income != null && selectedData.depreciation != null
+      ? (selectedData.net_operating_income as number) + Math.abs(selectedData.depreciation as number)
+      : null;
 
   return (
     <div className="space-y-8">
+      {/* Year Selector */}
+      <div className="flex items-center gap-4">
+        <label className="text-sm text-slate-400 font-medium">Year:</label>
+        <div className="flex gap-1">
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => setSelectedYear(y)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                y === selectedYear
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Waterfall Chart */}
-      <WaterfallChart data={latestData} />
+      <WaterfallChart data={selectedData} />
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Fee Mix</p>
           <p className="text-2xl font-bold text-blue-300 mt-1">
@@ -93,6 +131,13 @@ export default function IncomeStatement({ annual, entity }: Props) {
             {jaws != null ? `${jaws >= 0 ? "+" : ""}${jaws.toFixed(1)}pp` : "—"}
           </p>
           <p className="text-xs text-slate-500 mt-1">YoY Gross Margin growth - YoY operating cost growth</p>
+        </div>
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <p className="text-xs text-slate-400 uppercase tracking-wider">EBITDA</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">
+            {ebitda != null ? `€${ebitda.toFixed(1)}M` : "—"}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">Op. Profit + D&A</p>
         </div>
       </div>
 
@@ -135,7 +180,9 @@ export default function IncomeStatement({ annual, entity }: Props) {
 
                 const values = years.map((y) => {
                   const d = annual.data[y]?.[entity];
-                  return d && row.key ? (d[row.key] as number | null | undefined) : null;
+                  if (!d) return null;
+                  if (row.compute) return row.compute(d);
+                  return row.key ? (d[row.key] as number | null | undefined) ?? null : null;
                 });
 
                 const latestVal = values[values.length - 1];

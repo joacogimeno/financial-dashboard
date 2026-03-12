@@ -18,11 +18,11 @@ const quarterly = quarterlyRaw as unknown as QuarterlyJSON;
 const TABS: { id: TabId; label: string }[] = [
   { id: "summary", label: "Executive Summary" },
   { id: "income_statement", label: "Income Statement" },
-  { id: "efficiency", label: "Efficiency" },
+  { id: "quarterly", label: "Quarterly P&L" },
   { id: "profitability", label: "Profitability" },
   { id: "treasury", label: "Treasury & BS" },
-  { id: "quarterly", label: "Quarterly" },
   { id: "capital_payout", label: "Capital & Payout" },
+  { id: "efficiency", label: "Efficiency" },
 ];
 
 export default function App() {
