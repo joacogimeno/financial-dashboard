@@ -396,10 +396,10 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <Tooltip
                 contentStyle={tooltipStyle}
                 labelStyle={tooltipLabel}
-                itemStyle={tooltipItem}
-                formatter={(value: number | undefined, name: string | undefined): [string, string] =>
-                  [value != null ? `\u20AC${value.toFixed(0)}M` : "\u2014", name ?? ""]
-                }
+                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+                  value != null ? `\u20AC${value.toFixed(0)}M` : "\u2014",
+                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+                ]}
               />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
@@ -427,10 +427,10 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <Tooltip
                 contentStyle={tooltipStyle}
                 labelStyle={tooltipLabel}
-                itemStyle={tooltipItem}
-                formatter={(value: number | undefined, name: string | undefined): [string, string] =>
-                  [value != null ? `${value.toFixed(0)}%` : "N/A", name ?? ""]
-                }
+                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+                  value != null ? `${value.toFixed(0)}%` : "N/A",
+                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+                ]}
               />
               <ReferenceLine y={100} stroke="#f87171" strokeDasharray="4 2" label={{ value: "100%", fill: "#f87171", fontSize: 10, position: "right" }} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
@@ -488,10 +488,10 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <Tooltip
                 contentStyle={tooltipStyle}
                 labelStyle={tooltipLabel}
-                itemStyle={tooltipItem}
-                formatter={(value: number | undefined, name: string | undefined): [string, string] =>
-                  [value != null ? `\u20AC${value > 0 ? "+" : ""}${value.toFixed(0)}M` : "\u2014", name ?? ""]
-                }
+                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+                  value != null ? `\u20AC${value > 0 ? "+" : ""}${value.toFixed(0)}M` : "\u2014",
+                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+                ]}
               />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
@@ -556,10 +556,10 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <Tooltip
                 contentStyle={tooltipStyle}
                 labelStyle={tooltipLabel}
-                itemStyle={tooltipItem}
-                formatter={(value: number | undefined, name: string | undefined): [string, string] =>
-                  [value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014", name ?? ""]
-                }
+                formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+                  value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014",
+                  <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+                ]}
               />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (

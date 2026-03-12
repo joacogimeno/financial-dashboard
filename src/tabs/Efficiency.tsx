@@ -127,8 +127,12 @@ export default function Efficiency({ annual, entity }: Props) {
             <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
             <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
             <Tooltip
-              contentStyle={{ background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13 }}
-              formatter={(value: number | undefined, name: string | undefined) => [value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014", name ?? ""] as [string, string]}
+              contentStyle={{ background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13, color: "#e2e8f0" }}
+              labelStyle={{ color: "#94a3b8", marginBottom: 4 }}
+              formatter={(value: number | undefined, name: string | undefined, item: { color?: string }) => [
+                value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014",
+                <span style={{ color: item.color ?? "#94a3b8" }}>{name}</span>,
+              ]}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Bar dataKey="Staff Costs" stackId="a" fill="#22d3ee" radius={[0, 0, 0, 0]} />

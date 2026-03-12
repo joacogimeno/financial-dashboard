@@ -84,14 +84,19 @@ export default function BarComparisonChart({
             />
           ) : (
             <Tooltip
-              contentStyle={{
-                background: "#1e293b",
-                border: "1px solid #475569",
-                borderRadius: 8,
-                fontSize: 13,
+              content={({ active, payload, label }) => {
+                if (!active || !payload || payload.length === 0) return null;
+                const row = payload[0];
+                const entity = ((row?.payload as { entity?: EntityName } | undefined)?.entity ?? label ?? "") as EntityName | string;
+                const value = typeof row?.value === "number" ? row.value : null;
+                const entityColor = entity in ENTITY_COLORS ? ENTITY_COLORS[entity as EntityName] : "#e2e8f0";
+                return (
+                  <div style={{ background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13, padding: "10px 12px", boxShadow: "0 8px 24px rgba(2,6,23,0.45)" }}>
+                    <div style={{ color: entityColor, fontWeight: 600, marginBottom: 4 }}>{entity}</div>
+                    <div style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700 }}>{value != null ? fmt(value) : "\u2014"}</div>
+                  </div>
+                );
               }}
-              labelStyle={{ color: "#e2e8f0", fontWeight: 600, marginBottom: 4 }}
-              formatter={(value: number | undefined) => [value != null ? fmt(value) : "\u2014"]}
               cursor={{ fill: "rgba(148, 163, 184, 0.08)" }}
             />
           )}
