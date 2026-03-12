@@ -186,16 +186,16 @@ export default function CapitalPayout({ annual, entity }: Props) {
       return `No equity statement (ECPN) data is available for ${entity} in ${selectedYear}.`;
     }
     if (Math.abs(divPaid ?? 0) < 0.01) {
-      return `${entity} paid no dividends in ${selectedYear}, fully retaining its net profit of \u20AC${np?.toFixed(0) ?? "N/A"}M. Equity growth is driven entirely by earnings and OCI mark-to-market movements.`;
+      return `${entity} paid no dividends in ${selectedYear}, fully retaining its net profit of €${np?.toFixed(0) ?? "N/A"}M. Equity growth is driven entirely by earnings and OCI mark-to-market movements.`;
     }
     if (payout != null && payout >= 999) {
-      return `${entity} paid \u20AC${Math.abs(divPaid!).toFixed(0)}M in dividends in ${selectedYear} despite near-zero or negative earnings \u2014 equity is being actively reduced.`;
+      return `${entity} paid €${Math.abs(divPaid!).toFixed(0)}M in dividends in ${selectedYear} despite near-zero or negative earnings — equity is being actively reduced.`;
     }
     if (payout != null && payout > 100) {
-      return `${entity} distributed \u20AC${Math.abs(divPaid!).toFixed(0)}M in ${selectedYear}, exceeding its net profit of \u20AC${np?.toFixed(0) ?? "N/A"}M (${payout.toFixed(0)}% payout ratio). Distributions to shareholders exceed current-year earnings.`;
+      return `${entity} distributed €${Math.abs(divPaid!).toFixed(0)}M in ${selectedYear}, exceeding its net profit of €${np?.toFixed(0) ?? "N/A"}M (${payout.toFixed(0)}% payout ratio). Distributions to shareholders exceed current-year earnings.`;
     }
     const retained = np != null && divPaid != null ? np - Math.abs(divPaid) : null;
-    return `${entity} paid \u20AC${Math.abs(divPaid!).toFixed(0)}M in dividends in ${selectedYear} \u2014 a ${payout?.toFixed(0) ?? "N/A"}% payout on \u20AC${np?.toFixed(0) ?? "N/A"}M net profit \u2014 retaining \u20AC${retained?.toFixed(0) ?? "N/A"}M for equity growth.`;
+    return `${entity} paid €${Math.abs(divPaid!).toFixed(0)}M in dividends in ${selectedYear} — a ${payout?.toFixed(0) ?? "N/A"}% payout on €${np?.toFixed(0) ?? "N/A"}M net profit — retaining €${retained?.toFixed(0) ?? "N/A"}M for equity growth.`;
   })();
 
   return (
@@ -247,14 +247,14 @@ export default function CapitalPayout({ annual, entity }: Props) {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Dividends Paid</p>
           <p className="text-2xl font-bold text-blue-300 mt-1">
-            {!hasEcpnData ? "N/A" : divPaid == null || Math.abs(divPaid) < 0.01 ? "\u20AC0M" : `\u20AC${Math.abs(divPaid).toFixed(0)}M`}
+            {!hasEcpnData ? "N/A" : divPaid == null || Math.abs(divPaid) < 0.01 ? "€0M" : `€${Math.abs(divPaid).toFixed(0)}M`}
           </p>
-          <p className="text-xs text-slate-500 mt-1">vs \u20AC{np != null ? np.toFixed(0) : "N/A"}M net profit</p>
+          <p className="text-xs text-slate-500 mt-1">vs €{np != null ? np.toFixed(0) : "N/A"}M net profit</p>
         </div>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">Capital Actions</p>
           <p className={`text-2xl font-bold mt-1 ${Math.abs(capActions) > 0.1 ? (capActions > 0 ? "text-violet-400" : "text-red-400") : "text-slate-500"}`}>
-            {Math.abs(capActions) > 0.1 ? `\u20AC${capActions > 0 ? "+" : ""}${capActions.toFixed(0)}M` : "None"}
+            {Math.abs(capActions) > 0.1 ? `€${capActions > 0 ? "+" : ""}${capActions.toFixed(0)}M` : "None"}
           </p>
           <p className="text-xs text-slate-500 mt-1">Issuances & combinations</p>
         </div>
@@ -283,7 +283,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
                     const item = props.payload;
                     if (_n === "base") return [null, null] as [null, null];
                     const label = (item?.name as string ?? "").replace(/\n/g, " ");
-                    return [`\u20AC${(item?.delta as number)?.toFixed(1)}M`, label] as [string, string];
+                    return [`€${(item?.delta as number)?.toFixed(1)}M`, label] as [string, string];
                   }}
                 />
                 <ReferenceLine y={0} stroke="#475569" />
@@ -388,13 +388,13 @@ export default function CapitalPayout({ annual, entity }: Props) {
       {/* Dividend History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
-          <h3 className="text-sm font-semibold text-slate-300 mb-4">Dividends Paid (\u20ACM)</h3>
+          <h3 className="text-sm font-semibold text-slate-300 mb-4">Dividends Paid (€M)</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={divHistoryData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
-              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(0)}M`} />} />
+              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `€${v}M`} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toFixed(0)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} stackId="div" fill={ENTITY_COLORS[e]} opacity={e === entity ? 1 : 0.6} />
@@ -470,9 +470,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
+              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `€${v}M`} />
               <ReferenceLine y={0} stroke="#475569" />
-              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v > 0 ? "+" : ""}${v.toFixed(0)}M`} />} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `€${v > 0 ? "+" : ""}${v.toFixed(0)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} fill={ENTITY_COLORS[e]} radius={[3, 3, 0, 0]} opacity={e === entity ? 1 : 0.65}>
@@ -497,12 +497,12 @@ export default function CapitalPayout({ annual, entity }: Props) {
         highlightEntity={entity}
         title={`Capital & Payout — FY ${selectedYear}`}
         columns={[
-          { key: "dividends_paid", label: "Dividends (\u20ACM)", format: (v) => v === 0 ? "\u2014" : `\u20AC${Math.abs(v).toFixed(0)}M`, higherIsBetter: false },
-          { key: "net_profit", label: "Net Profit", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "dividends_paid", label: "Dividends (€M)", format: (v) => v === 0 ? "—" : `€${Math.abs(v).toFixed(0)}M`, higherIsBetter: false },
+          { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
           { key: "payout_ratio_pct", label: "Payout %", format: (v) => v >= 999 ? ">999%" : `${v.toFixed(0)}%`, higherIsBetter: false },
           { key: "retention_rate_pct", label: "Retention %", format: (v) => `${v.toFixed(0)}%`, higherIsBetter: true },
           { key: "dividend_yield_on_equity_pct", label: "Div Yield/Eq", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
-          { key: "total_equity", label: "Closing Equity", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "total_equity", label: "Closing Equity", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
         ]}
       />
 
@@ -513,7 +513,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
         return oci != null && eq != null && eq !== 0 && Math.abs(oci / eq) > 0.02;
       })) && (
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
-          <h3 className="text-sm font-semibold text-slate-300 mb-1">OCI Mark-to-Market Volatility (\u20ACM)</h3>
+          <h3 className="text-sm font-semibold text-slate-300 mb-1">OCI Mark-to-Market Volatility (€M)</h3>
           <p className="text-[10px] text-slate-500 mb-4">
             Other Comprehensive Income — primarily FVOCI securities, pension actuarial, and hedging moves. Large swings indicate balance sheet sensitivity to rates/markets.
           </p>
@@ -531,9 +531,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
+              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `€${v}M`} />
               <ReferenceLine y={0} stroke="#475569" />
-              <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(1)}M`} />} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toFixed(1)}M`} />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} iconType="circle" iconSize={8} />
               {ENTITY_NAMES.map((e) => (
                 <Bar key={e} dataKey={e} fill={ENTITY_COLORS[e]} radius={[2, 2, 0, 0]} opacity={e === entity ? 1 : 0.6}>

@@ -79,7 +79,7 @@ export default function Efficiency({ annual, entity }: Props) {
         <div className={`rounded-xl p-5 border ${entityJaws !== null && entityJaws > 0 ? "bg-emerald-950/20 border-emerald-500/30" : "bg-red-950/20 border-red-500/30"}`}>
           <p className="text-xs text-slate-400 uppercase tracking-wider">Jaws Ratio</p>
           <p className={`text-2xl font-bold mt-1 ${entityJaws !== null && entityJaws > 0 ? "text-emerald-400" : "text-red-400"}`}>
-            {entityJaws !== null ? `${entityJaws > 0 ? "+" : ""}${entityJaws.toFixed(1)}pp` : "\u2014"}
+            {entityJaws !== null ? `${entityJaws > 0 ? "+" : ""}${entityJaws.toFixed(1)}pp` : "—"}
           </p>
           <p className="text-xs text-slate-500 mt-1">Revenue vs cost growth</p>
         </div>
@@ -120,14 +120,14 @@ export default function Efficiency({ annual, entity }: Props) {
       {/* Admin Cost Breakdown */}
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
         <h3 className="text-sm font-semibold text-slate-300 mb-4">
-          {entity} Operating Cost Breakdown ({"\u20AC"}M)
+          {entity} Operating Cost Breakdown ({"€"}M)
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={breakdownData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="year" tick={{ fill: "#94a3b8", fontSize: 12 }} />
-            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
-            <Tooltip content={<ChartTooltip formatter={(v) => `\u20AC${v.toFixed(1)}M`} />} />
+            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `€${v}M`} />
+            <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toFixed(1)}M`} />} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Bar dataKey="Staff Costs" stackId="a" fill="#22d3ee" radius={[0, 0, 0, 0]} />
             <Bar dataKey="Other Admin" stackId="a" fill="#60a5fa" radius={[0, 0, 0, 0]} />
@@ -157,7 +157,7 @@ export default function Efficiency({ annual, entity }: Props) {
           { key: "cost_to_income_pct", label: "C/I Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
           { key: "jaws_ratio", label: "Jaws", format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}pp`, higherIsBetter: true },
           { key: "staff_costs_pct", label: "Staff/GM", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
-          { key: "admin_expenses", label: "Admin", format: (v) => `\u20AC${Math.abs(v).toFixed(1)}M`, higherIsBetter: false },
+          { key: "admin_expenses", label: "Admin", format: (v) => `€${Math.abs(v).toFixed(1)}M`, higherIsBetter: false },
           { key: "opex_assets_bps", label: "OpEx/Assets", format: (v) => `${v.toFixed(0)} bps`, higherIsBetter: false },
         ]}
       />

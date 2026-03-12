@@ -70,7 +70,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
     };
   });
 
-  const eurTooltip = <ChartTooltip formatter={(v) => `\u20AC${v.toFixed(0)}M`} />;
+  const eurTooltip = <ChartTooltip formatter={(v) => `€${v.toFixed(0)}M`} />;
 
   return (
     <div className="space-y-8">
@@ -138,13 +138,13 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Quarterly Asset Composition — Area Chart */}
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
         <h3 className="text-sm font-semibold text-slate-300 mb-4">
-          {entity} Asset Composition — Quarterly ({"\u20AC"}M)
+          {entity} Asset Composition — Quarterly ({"€"}M)
         </h3>
         <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={assetComposition} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="quarter" tick={{ fill: "#94a3b8", fontSize: 11 }} interval={1} />
-            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
+            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `€${v}M`} />
             <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Area type="monotone" dataKey="Cash" stackId="1" stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.7} />
@@ -159,13 +159,13 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Quarterly Funding Composition — Area Chart */}
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
         <h3 className="text-sm font-semibold text-slate-300 mb-4">
-          {entity} Funding Composition — Quarterly ({"\u20AC"}M)
+          {entity} Funding Composition — Quarterly ({"€"}M)
         </h3>
         <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={fundingComposition} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="quarter" tick={{ fill: "#94a3b8", fontSize: 11 }} interval={1} />
-            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
+            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `€${v}M`} />
             <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Area type="monotone" dataKey="Client Deposits" stackId="1" stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.7} />
@@ -179,13 +179,13 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Funding Structure — Peer Comparison */}
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
         <h3 className="text-sm font-semibold text-slate-300 mb-4">
-          Funding Structure — FY {latestYear} ({"\u20AC"}M)
+          Funding Structure — FY {latestYear} ({"€"}M)
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={fundingPeerData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             <XAxis dataKey="entity" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `\u20AC${v}M`} />
+            <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => `€${v}M`} />
             <Tooltip content={eurTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} iconType="rect" />
             <Bar dataKey="Client Deposits" stackId="a" fill="#60a5fa" />
@@ -229,7 +229,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
           { key: "funding_cost_pct", label: "Funding Cost", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: false },
           { key: "liquidity_ratio_pct", label: "Liquidity", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
           { key: "client_funding_ratio_pct", label: "Client Funding", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
-          { key: "total_assets", label: "Total Assets", format: (v) => `\u20AC${v.toFixed(0)}M`, higherIsBetter: true },
+          { key: "total_assets", label: "Total Assets", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
         ]}
       />
     </div>

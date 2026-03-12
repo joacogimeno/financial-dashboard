@@ -79,11 +79,11 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
         highlightEntity={entity}
         title={`Peer Comparison — FY ${selectedYear}`}
         columns={[
-          { key: "gross_margin", label: "Gross Margin", format: (v) => `\u20AC${v.toFixed(1)}M`, higherIsBetter: true },
-          { key: "net_fee_income", label: "Net Fee Inc.", format: (v) => `\u20AC${v.toFixed(1)}M`, higherIsBetter: true },
+          { key: "gross_margin", label: "Gross Margin", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },
+          { key: "net_fee_income", label: "Net Fee Inc.", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },
           { key: "cost_to_income_pct", label: "C/I Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
           { key: "roe_pct", label: "ROE", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
-          { key: "net_profit", label: "Net Profit", format: (v) => `\u20AC${v.toFixed(1)}M`, higherIsBetter: true },
+          { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },
           { key: "tangible_equity_ratio_pct", label: "TE Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
         ]}
       />

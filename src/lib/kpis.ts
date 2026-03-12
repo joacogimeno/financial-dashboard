@@ -1,6 +1,6 @@
 import type { KPIDef } from "./types";
 
-const eur = (v: number) => `\u20AC${Math.abs(v).toFixed(1)}M`;
+const eur = (v: number) => `€${Math.abs(v).toFixed(1)}M`;
 const pct = (v: number) => `${v.toFixed(1)}%`;
 const bps = (v: number) => `${v.toFixed(0)} bps`;
 
@@ -53,7 +53,7 @@ export const KPI_DEFS: KPIDef[] = [
   {
     key: "net_fee_income",
     label: "Net Fee Income",
-    unit: "\u20ACM",
+    unit: "€M",
     format: eur,
     higherIsBetter: true,
     description: "Fee Income minus Fee Expenses. Core recurring revenue for custodians.",
@@ -132,7 +132,7 @@ export const KPI_DEFS: KPIDef[] = [
     unit: "%",
     format: pct,
     higherIsBetter: true,
-    description: "(Equity \u2212 Intangibles) / Total Assets. Strips out goodwill and intangibles.",
+    description: "(Equity − Intangibles) / Total Assets. Strips out goodwill and intangibles.",
   },
   // ── Investment ────────────────────────────────────────────
   {
