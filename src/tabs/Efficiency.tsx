@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -22,6 +23,7 @@ interface Props {
 export default function Efficiency({ annual, entity }: Props) {
   const years = annual._metadata.years.map(String);
   const latestYear = years[years.length - 1];
+  const [selectedYear, setSelectedYear] = useState(latestYear);
   const jawsYears = years.filter((y) =>
     ENTITY_NAMES.some((e) => annual.data[y]?.[e]?.jaws_ratio != null)
   );
@@ -35,13 +37,13 @@ export default function Efficiency({ annual, entity }: Props) {
 
   // Gap-to-best analysis
   const bestCti = Math.min(
-    ...ENTITY_NAMES.map((e) => (annual.data[latestYear]?.[e]?.cost_to_income_pct as number) ?? 999)
+    ...ENTITY_NAMES.map((e) => (annual.data[selectedYear]?.[e]?.cost_to_income_pct as number) ?? 999)
   );
-  const entityCti = (annual.data[latestYear]?.[entity]?.cost_to_income_pct as number) ?? 0;
+  const entityCti = (annual.data[selectedYear]?.[entity]?.cost_to_income_pct as number) ?? 0;
   const gap = entityCti - bestCti;
 
   // Jaws ratio
-  const entityJaws = (annual.data[latestYear]?.[entity]?.jaws_ratio as number) ?? null;
+  const entityJaws = (annual.data[selectedYear]?.[entity]?.jaws_ratio as number) ?? null;
 
   // Admin cost breakdown data for selected entity
   const breakdownData = years.map((y) => {
@@ -56,6 +58,26 @@ export default function Efficiency({ annual, entity }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* Year Selector */}
+      <div className="flex items-center gap-4">
+        <label className="text-sm text-slate-400 font-medium">Year:</label>
+        <div className="flex gap-1">
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => setSelectedYear(y)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                y === selectedYear
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -67,7 +89,7 @@ export default function Efficiency({ annual, entity }: Props) {
           <p className="text-2xl font-bold text-emerald-400 mt-1">{bestCti.toFixed(1)}%</p>
           <p className="text-xs text-slate-500 mt-1">
             {ENTITY_NAMES.find(
-              (e) => (annual.data[latestYear]?.[e]?.cost_to_income_pct as number) === bestCti
+              (e) => (annual.data[selectedYear]?.[e]?.cost_to_income_pct as number) === bestCti
             )}
           </p>
         </div>
@@ -150,9 +172,9 @@ export default function Efficiency({ annual, entity }: Props) {
       {/* Peer Table */}
       <PeerTable
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         highlightEntity={entity}
-        title={`Efficiency Metrics — FY ${latestYear}`}
+        title={`Efficiency Metrics — FY ${selectedYear}`}
         columns={[
           { key: "cost_to_income_pct", label: "C/I Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
           { key: "jaws_ratio", label: "Jaws", format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}pp`, higherIsBetter: true },

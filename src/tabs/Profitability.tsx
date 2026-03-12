@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { AnnualJSON, EntityName } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import TrendChart from "../components/TrendChart";
@@ -12,26 +13,47 @@ interface Props {
 export default function Profitability({ annual, entity }: Props) {
   const years = annual._metadata.years.map(String);
   const latestYear = years[years.length - 1];
+  const [selectedYear, setSelectedYear] = useState(latestYear);
   const earliest = years[0];
 
   const roeStart = (annual.data[earliest]?.[entity]?.roe_pct as number) ?? 0;
-  const roeEnd = (annual.data[latestYear]?.[entity]?.roe_pct as number) ?? 0;
+  const roeEnd = (annual.data[selectedYear]?.[entity]?.roe_pct as number) ?? 0;
 
   const npStart = (annual.data[earliest]?.[entity]?.net_profit as number) ?? 0;
-  const npEnd = (annual.data[latestYear]?.[entity]?.net_profit as number) ?? 0;
+  const npEnd = (annual.data[selectedYear]?.[entity]?.net_profit as number) ?? 0;
 
   // Peer best ROE
   const bestRoeVal = Math.max(
-    ...ENTITY_NAMES.map((e) => (annual.data[latestYear]?.[e]?.roe_pct as number) ?? -999)
+    ...ENTITY_NAMES.map((e) => (annual.data[selectedYear]?.[e]?.roe_pct as number) ?? -999)
   );
   const bestRoeEntity = ENTITY_NAMES.reduce((best, e) => {
-    const v = (annual.data[latestYear]?.[e]?.roe_pct as number) ?? -999;
-    const bestV = (annual.data[latestYear]?.[best]?.roe_pct as number) ?? -999;
+    const v = (annual.data[selectedYear]?.[e]?.roe_pct as number) ?? -999;
+    const bestV = (annual.data[selectedYear]?.[best]?.roe_pct as number) ?? -999;
     return v > bestV ? e : best;
   }, ENTITY_NAMES[0]);
 
   return (
     <div className="space-y-8">
+      {/* Year Selector */}
+      <div className="flex items-center gap-4">
+        <label className="text-sm text-slate-400 font-medium">Year:</label>
+        <div className="flex gap-1">
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => setSelectedYear(y)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                y === selectedYear
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -56,7 +78,7 @@ export default function Profitability({ annual, entity }: Props) {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
           <p className="text-xs text-slate-400 uppercase tracking-wider">{entity} ROA</p>
           <p className="text-2xl font-bold text-blue-300 mt-1">
-            {((annual.data[latestYear]?.[entity]?.roa_pct as number) ?? 0).toFixed(2)}%
+            {((annual.data[selectedYear]?.[entity]?.roa_pct as number) ?? 0).toFixed(2)}%
           </p>
         </div>
       </div>
@@ -85,9 +107,9 @@ export default function Profitability({ annual, entity }: Props) {
       {/* Net Profit Comparison */}
       <BarComparisonChart
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         metric="net_profit"
-        title={`Net Profit Comparison — FY ${latestYear} (€M)`}
+        title={`Net Profit Comparison — FY ${selectedYear} (€M)`}
         formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
@@ -106,9 +128,9 @@ export default function Profitability({ annual, entity }: Props) {
       {/* Tangible Equity Comparison */}
       <BarComparisonChart
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         metric="tangible_equity"
-        title={`Tangible Equity Comparison — FY ${latestYear} (€M)`}
+        title={`Tangible Equity Comparison — FY ${selectedYear} (€M)`}
         formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
@@ -116,9 +138,9 @@ export default function Profitability({ annual, entity }: Props) {
       {/* Full Peer Table */}
       <PeerTable
         data={annual}
-        year={latestYear}
+        year={selectedYear}
         highlightEntity={entity}
-        title={`Profitability & Solvency — FY ${latestYear}`}
+        title={`Profitability & Solvency — FY ${selectedYear}`}
         columns={[
           { key: "roe_pct", label: "ROE", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
           { key: "roa_pct", label: "ROA", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
