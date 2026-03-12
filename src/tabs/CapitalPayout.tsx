@@ -174,7 +174,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
     return row;
   });
 
-  const tooltipStyle = { background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13 };
+  const tooltipStyle   = { background: "#1e293b", border: "1px solid #475569", borderRadius: 8, fontSize: 13, color: "#e2e8f0" };
+  const tooltipLabel   = { color: "#94a3b8", marginBottom: 2 };
+  const tooltipItem    = { color: "#e2e8f0" };
   const hasBridgeData = bridgeData != null && bridgeData.length > 0;
 
   // Dynamic interpretation note for the selected entity and year
@@ -273,10 +275,14 @@ export default function CapitalPayout({ annual, entity }: Props) {
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v.toFixed(0)}`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
+                  labelStyle={tooltipLabel}
+                  itemStyle={tooltipItem}
+                  labelFormatter={() => ""}
                   formatter={(_v: number | undefined, _n: string | undefined, props: { payload?: Record<string, unknown> }) => {
                     const item = props.payload;
                     if (_n === "base") return [null, null] as [null, null];
-                    return [`\u20AC${(item?.delta as number)?.toFixed(1)}M`, item?.name as string] as [string, string];
+                    const label = (item?.name as string ?? "").replace(/\n/g, " ");
+                    return [`\u20AC${(item?.delta as number)?.toFixed(1)}M`, label] as [string, string];
                   }}
                 />
                 <ReferenceLine y={0} stroke="#475569" />
@@ -323,6 +329,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <YAxis type="category" dataKey="entity" tick={{ fill: "#94a3b8", fontSize: 11 }} width={65} />
               <Tooltip
                 contentStyle={tooltipStyle}
+                labelStyle={tooltipLabel}
+                itemStyle={tooltipItem}
+                labelFormatter={(label) => label}
                 formatter={(_value: number | undefined, _name: string | undefined, props: { payload?: Record<string, unknown> }) => {
                   const actualPayout = props.payload?.payout as number | null ?? null;
                   const hasData = props.payload?.hasData as boolean ?? false;
@@ -386,6 +395,8 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `\u20AC${v}M`} />
               <Tooltip
                 contentStyle={tooltipStyle}
+                labelStyle={tooltipLabel}
+                itemStyle={tooltipItem}
                 formatter={(value: number | undefined, name: string | undefined): [string, string] =>
                   [value != null ? `\u20AC${value.toFixed(0)}M` : "\u2014", name ?? ""]
                 }
@@ -415,6 +426,8 @@ export default function CapitalPayout({ annual, entity }: Props) {
               />
               <Tooltip
                 contentStyle={tooltipStyle}
+                labelStyle={tooltipLabel}
+                itemStyle={tooltipItem}
                 formatter={(value: number | undefined, name: string | undefined): [string, string] =>
                   [value != null ? `${value.toFixed(0)}%` : "N/A", name ?? ""]
                 }
@@ -474,6 +487,8 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <ReferenceLine y={0} stroke="#475569" />
               <Tooltip
                 contentStyle={tooltipStyle}
+                labelStyle={tooltipLabel}
+                itemStyle={tooltipItem}
                 formatter={(value: number | undefined, name: string | undefined): [string, string] =>
                   [value != null ? `\u20AC${value > 0 ? "+" : ""}${value.toFixed(0)}M` : "\u2014", name ?? ""]
                 }
@@ -540,6 +555,8 @@ export default function CapitalPayout({ annual, entity }: Props) {
               <ReferenceLine y={0} stroke="#475569" />
               <Tooltip
                 contentStyle={tooltipStyle}
+                labelStyle={tooltipLabel}
+                itemStyle={tooltipItem}
                 formatter={(value: number | undefined, name: string | undefined): [string, string] =>
                   [value != null ? `\u20AC${value.toFixed(1)}M` : "\u2014", name ?? ""]
                 }
