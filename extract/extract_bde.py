@@ -646,6 +646,17 @@ def main():
         # were already correctly isolated by YTD differencing.
         standalone = compute_ratios(standalone, preserve=ytd_metrics)
 
+        # Annualize ROE for the standalone quarter: net_profit covers a single
+        # quarter while equity is point-in-time, so the raw ratio understates
+        # ROE ~4x. Scale the quarterly return by 4 for an annualized estimate
+        # (matches the "ROE (annualized est.)" label in the Quarterly P&L tab).
+        for _entity in ENTITY_NAMES:
+            _d = standalone[_entity]
+            _np = _d.get("net_profit")
+            _eq = _d.get("total_equity")
+            if _np is not None and _eq is not None and _eq != 0:
+                _d["roe_pct"] = round(_np * 4 / _eq * 100, 1)
+
         quarterly_output["quarters"].append(q_label)
         quarterly_output["data"][q_label] = standalone
 
