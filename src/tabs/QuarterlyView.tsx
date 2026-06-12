@@ -64,32 +64,64 @@ function getVal(row: QRow, d: EntityMetrics | undefined): number | null {
 export default function QuarterlyView({ quarterly, entity }: Props) {
   const quarters = quarterly.quarters;
   const [selectedQ, setSelectedQ] = useState(quarters[quarters.length - 1]);
+  const [compareMode, setCompareMode] = useState<"qoq" | "yoy">("qoq");
 
   const qData = quarterly.data[selectedQ];
 
+  // Comparison period: prior quarter (QoQ) or same quarter one year earlier (YoY)
   const qIdx = quarters.indexOf(selectedQ);
-  const priorQ = qIdx > 0 ? quarters[qIdx - 1] : null;
-  const priorData = priorQ ? quarterly.data[priorQ] : null;
+  let compareQ: string | null = null;
+  if (compareMode === "qoq") {
+    compareQ = qIdx > 0 ? quarters[qIdx - 1] : null;
+  } else {
+    const [y, q] = selectedQ.split("-");
+    const yoyCandidate = `${Number(y) - 1}-${q}`;
+    compareQ = quarters.includes(yoyCandidate) ? yoyCandidate : null;
+  }
+  const compareData = compareQ ? quarterly.data[compareQ] : null;
 
   return (
     <div className="space-y-8">
-      {/* Quarter Selector */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <label className="text-sm text-slate-400 font-medium">Select Quarter:</label>
-        <div className="flex gap-1 flex-wrap">
-          {quarters.map((q) => (
-            <button
-              key={q}
-              onClick={() => setSelectedQ(q)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                q === selectedQ
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
-              }`}
-            >
-              {q}
-            </button>
-          ))}
+      {/* Quarter Selector + Compare toggle */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-4 flex-wrap">
+          <label className="text-sm text-slate-400 font-medium">Select Quarter:</label>
+          <div className="flex gap-1 flex-wrap">
+            {quarters.map((q) => (
+              <button
+                key={q}
+                onClick={() => setSelectedQ(q)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  q === selectedQ
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300"
+                }`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="text-sm text-slate-400 font-medium">Compare:</label>
+          <div className="inline-flex rounded-lg bg-slate-800 p-0.5">
+            {([["qoq", "QoQ"], ["yoy", "YoY"]] as const).map(([mode, lbl]) => (
+              <button
+                key={mode}
+                onClick={() => setCompareMode(mode)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  compareMode === mode
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-slate-500">
+            {compareMode === "qoq" ? "vs prior quarter" : "vs same quarter last year"}
+          </span>
         </div>
       </div>
 
@@ -98,7 +130,11 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
         <div className="px-5 py-3 border-b border-slate-700/50">
           <h3 className="text-sm font-semibold text-slate-300">
             Standalone Quarter P&L — {selectedQ}
-            {priorQ && <span className="text-slate-500 font-normal ml-2">(vs {priorQ})</span>}
+            {compareQ && (
+              <span className="text-slate-500 font-normal ml-2">
+                ({compareMode.toUpperCase()} vs {compareQ})
+              </span>
+            )}
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -158,19 +194,19 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
                     </td>
                     {ENTITY_NAMES.map((eName) => {
                       const v = getVal(row, qData?.[eName]);
-                      const pv = priorData ? getVal(row, priorData[eName]) : null;
+                      const cv = compareData ? getVal(row, compareData[eName]) : null;
                       const isHighlighted = eName === entity;
 
-                      // Use absolute values for QoQ so sign always means "grew/shrank"
+                      // Use absolute values so sign always means "grew/shrank"
                       // regardless of whether the metric is stored as negative
-                      let qoq: number | null = null;
-                      if (v != null && pv != null && Math.abs(pv) !== 0) {
-                        qoq = ((Math.abs(v) - Math.abs(pv)) / Math.abs(pv)) * 100;
+                      let delta: number | null = null;
+                      if (v != null && cv != null && Math.abs(cv) !== 0) {
+                        delta = ((Math.abs(v) - Math.abs(cv)) / Math.abs(cv)) * 100;
                       }
 
                       const fmt = row.format ?? eurFmt;
-                      const qoqGood = row.lowerIsBetter ? qoq != null && qoq < 0 : qoq != null && qoq > 0;
-                      const qoqBad  = row.lowerIsBetter ? qoq != null && qoq > 0 : qoq != null && qoq < 0;
+                      const deltaGood = row.lowerIsBetter ? delta != null && delta < 0 : delta != null && delta > 0;
+                      const deltaBad  = row.lowerIsBetter ? delta != null && delta > 0 : delta != null && delta < 0;
 
                       return (
                         <td
@@ -186,13 +222,13 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
                           }`}
                         >
                           {v != null ? fmt(v) : "—"}
-                          {qoq != null && (
+                          {delta != null && (
                             <span
                               className="ml-1.5 text-[10px] font-normal"
-                              style={{ color: qoqGood ? "#34d399" : qoqBad ? "#f87171" : "#94a3b8" }}
+                              style={{ color: deltaGood ? "#34d399" : deltaBad ? "#f87171" : "#94a3b8" }}
                             >
-                              {qoq > 0 ? "+" : ""}
-                              {qoq.toFixed(0)}%
+                              {delta > 0 ? "+" : ""}
+                              {delta.toFixed(0)}%
                             </span>
                           )}
                         </td>
