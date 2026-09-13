@@ -81,6 +81,18 @@ export interface EntityMetrics {
   payout_ratio_pct?: number | null;
   retention_rate_pct?: number | null;
   dividend_yield_on_equity_pct?: number | null;
+  // YTD (partial-year) support: raw same-period prior-year snapshot, attached only
+  // to a YTD year's entry so growth can be measured like-for-like (H1 vs H1).
+  ytd_prior?: EntityMetrics | null;
+}
+
+// Describes a partial (year-to-date) entry in the annual dataset. Present in
+// AnnualJSON._metadata.ytd keyed by the calendar year (e.g. "2026").
+export interface YtdMeta {
+  period: string; // source BdE period, e.g. "202606"
+  months: number; // months of data covered, e.g. 6 for H1
+  label: string; // display label, e.g. "H1 2026"
+  quarters: string[]; // quarter labels covered, e.g. ["2026-Q1", "2026-Q2"]
 }
 
 export type PeriodData = Record<EntityName, EntityMetrics>;
@@ -91,6 +103,7 @@ export interface AnnualJSON {
     source: string;
     entities: string[];
     years: number[];
+    ytd?: Record<string, YtdMeta>;
   };
   data: Record<string, PeriodData>;
 }
@@ -115,6 +128,9 @@ export interface KPIDef {
   higherIsBetter: boolean;
   description: string;
   compute?: (annual: AnnualJSON, entity: EntityName, year: string) => number | null;
+  // The metric's value is itself a YoY growth/change figure. In a YTD year its
+  // headline is already H1-vs-H1, so the card shows the basis rather than a delta.
+  growthRate?: boolean;
 }
 
 export interface Commentary {

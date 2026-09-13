@@ -3,6 +3,7 @@
 Extract financial data from BdE public Excel statements and produce
 annual.json + quarterly.json for the CFO Intelligence Dashboard.
 """
+import copy
 import json
 import os
 import sys
@@ -577,10 +578,77 @@ def main():
                 cost_growth = (cost_curr - cost_prev) / cost_prev * 100 if cost_prev != 0 else 0
                 curr["jaws_ratio"] = round(rev_growth - cost_growth, 1)
 
+    # --- Synthesize a YTD entry for the latest incomplete year -----------------
+    # BdE quarterly P&L files are YTD cumulative, so the most recent non-December
+    # period already IS the year-to-date figure (e.g. 202606 = H1 2026). Expose it
+    # as a partial-year "annual" entry so every year-selector-driven tab can show
+    # the current year. Flows stay actual (half-year); flow-over-stock ratios are
+    # annualised (x 12/months) for comparability with full years; a raw prior-year
+    # YTD snapshot is attached under "ytd_prior" so YoY growth can be measured
+    # like-for-like (H1 vs H1). The _metadata.ytd map lets the UI label the year.
+    partial_periods = [p for p in all_periods if not p.endswith("12")]
+    if partial_periods:
+        latest_partial = partial_periods[-1]
+        py = int(latest_partial[:4])
+        mm = latest_partial[4:6]
+        # Only synthesise if this calendar year has no year-end (December) file yet.
+        if f"{py}12" not in files:
+            months = int(mm)
+            factor = 12.0 / months
+            # Ratios that divide a YTD flow by a point-in-time stock understate the
+            # full-year figure and must be annualised; (key -> rounding digits).
+            ANNUALISE_KEYS = {
+                "roe_pct": 1, "roa_pct": 2, "nii_sensitivity_bps": 1,
+                "opex_assets_bps": 0, "earning_asset_yield_pct": 2,
+                "funding_cost_pct": 2, "cost_of_risk_bps": 1,
+            }
+            ytd_entry = copy.deepcopy(period_data[latest_partial])
+            prior_ytd_period = f"{py - 1}{mm}"  # same YTD window one year earlier
+            for e in ENTITY_NAMES:
+                d = ytd_entry[e]
+                for k, ndigits in ANNUALISE_KEYS.items():
+                    if d.get(k) is not None:
+                        d[k] = round(d[k] * factor, ndigits)
+                # Interest spread recomputed on the annualised components.
+                if d.get("earning_asset_yield_pct") is not None and d.get("funding_cost_pct") is not None:
+                    d["interest_spread_pct"] = round(
+                        d["earning_asset_yield_pct"] - d["funding_cost_pct"], 2
+                    )
+                # Attach raw prior-year YTD snapshot and compute like-for-like Jaws.
+                if prior_ytd_period in period_data:
+                    prior = period_data[prior_ytd_period][e]
+                    d["ytd_prior"] = copy.deepcopy(prior)
+                    gm_c, gm_p = d.get("gross_margin"), prior.get("gross_margin")
+                    admin_c, admin_p = d.get("admin_expenses"), prior.get("admin_expenses")
+                    depr_c, depr_p = d.get("depreciation"), prior.get("depreciation")
+                    if all(v is not None for v in (gm_c, gm_p, admin_c, admin_p)) and gm_p != 0 and admin_p != 0:
+                        rev_g = (gm_c - gm_p) / abs(gm_p) * 100
+                        cost_c = abs(admin_c) + (abs(depr_c) if depr_c else 0)
+                        cost_p = abs(admin_p) + (abs(depr_p) if depr_p else 0)
+                        cost_g = (cost_c - cost_p) / cost_p * 100 if cost_p != 0 else 0
+                        d["jaws_ratio"] = round(rev_g - cost_g, 1)
+                else:
+                    # No prior-year YTD to compare against — Jaws is undefined.
+                    d.pop("jaws_ratio", None)
+            annual_output["data"][str(py)] = ytd_entry
+            annual_output["_metadata"]["years"].append(py)
+            n_q = months // 3
+            q_labels = [f"{py}-Q{i}" for i in range(1, n_q + 1)]
+            period_label = {3: "Q1", 6: "H1", 9: "9M"}.get(months, f"{months}M")
+            annual_output["_metadata"]["ytd"] = {
+                str(py): {
+                    "period": latest_partial,
+                    "months": months,
+                    "label": f"{period_label} {py}",
+                    "quarters": q_labels,
+                }
+            }
+            print(f"  Synthesised YTD entry for {py} ({period_label}, {months}m) from {latest_partial}")
+
     annual_path = OUTPUT_DIR / "annual.json"
     with open(annual_path, "w") as f:
         json.dump(annual_output, f, indent=2, ensure_ascii=False)
-    print(f"\nWrote {annual_path} ({len(annual_periods)} years)")
+    print(f"\nWrote {annual_path} ({len(annual_output['_metadata']['years'])} years incl. YTD)")
 
     # --- Build quarterly.json (standalone quarter figures) ---
     # BdE reports YTD cumulative — isolate standalone quarters by subtraction

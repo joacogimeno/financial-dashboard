@@ -1,8 +1,25 @@
-import type { KPIDef } from "./types";
+import type { AnnualJSON, EntityName, KPIDef, MetricKey } from "./types";
 
 const eur = (v: number) => `€${Math.abs(v).toFixed(1)}M`;
 const pct = (v: number) => `${v.toFixed(1)}%`;
 const bps = (v: number) => `${v.toFixed(0)} bps`;
+
+// The comparison base for a YoY-growth metric. For a YTD year (whose entry
+// carries a raw same-period prior-year snapshot) we compare like-for-like
+// (H1 vs H1); otherwise we use the prior full year.
+export function growthBase(
+  annual: AnnualJSON,
+  entity: EntityName,
+  year: string,
+  metric: MetricKey,
+): number | null {
+  const cur = annual.data[year]?.[entity];
+  if (cur?.ytd_prior) return (cur.ytd_prior[metric] as number) ?? null;
+  const years = annual._metadata.years.map(String);
+  const idx = years.indexOf(year);
+  if (idx <= 0) return null;
+  return (annual.data[years[idx - 1]]?.[entity]?.[metric] as number) ?? null;
+}
 
 export const KPI_DEFS: KPIDef[] = [
   // ── Revenue ──────────────────────────────────────────────
@@ -12,14 +29,11 @@ export const KPI_DEFS: KPIDef[] = [
     unit: "%",
     format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
     higherIsBetter: true,
+    growthRate: true,
     description: "YoY growth of Gross Income. Measures top-line business momentum.",
     compute: (annual, entity, year) => {
-      const years = annual._metadata.years.map(String);
-      const idx = years.indexOf(year);
-      if (idx <= 0) return null;
-      const prior = years[idx - 1];
       const curr = (annual.data[year]?.[entity]?.gross_margin as number) ?? null;
-      const prev = (annual.data[prior]?.[entity]?.gross_margin as number) ?? null;
+      const prev = growthBase(annual, entity, year, "gross_margin");
       if (curr == null || prev == null || prev === 0) return null;
       return ((curr - prev) / Math.abs(prev)) * 100;
     },
@@ -30,19 +44,15 @@ export const KPI_DEFS: KPIDef[] = [
     unit: "%",
     format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
     higherIsBetter: true,
+    growthRate: true,
     description: "YoY growth of Gross Income excluding NII. Measures fee-based revenue momentum.",
     compute: (annual, entity, year) => {
-      const years = annual._metadata.years.map(String);
-      const idx = years.indexOf(year);
-      if (idx <= 0) return null;
-      const prior = years[idx - 1];
       const mCurr = annual.data[year]?.[entity];
-      const mPrev = annual.data[prior]?.[entity];
-      if (!mCurr || !mPrev) return null;
+      if (!mCurr) return null;
       const gm = (mCurr.gross_margin as number) ?? null;
       const nii = (mCurr.nii as number) ?? null;
-      const gmPrev = (mPrev.gross_margin as number) ?? null;
-      const niiPrev = (mPrev.nii as number) ?? null;
+      const gmPrev = growthBase(annual, entity, year, "gross_margin");
+      const niiPrev = growthBase(annual, entity, year, "nii");
       if (gm == null || nii == null || gmPrev == null || niiPrev == null) return null;
       const curr = gm - nii;
       const prev = gmPrev - niiPrev;
@@ -98,19 +108,19 @@ export const KPI_DEFS: KPIDef[] = [
     unit: "%",
     format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}pp`,
     higherIsBetter: true,
+    growthRate: true,
     description: "Revenue growth % minus cost growth %. Positive = revenues outpacing costs.",
     compute: (annual, entity, year) => {
-      const years = annual._metadata.years.map(String);
-      const idx = years.indexOf(year);
-      if (idx <= 0) return null;
-      const prior = years[idx - 1];
       const mC = annual.data[year]?.[entity];
-      const mP = annual.data[prior]?.[entity];
-      if (!mC || !mP) return null;
+      if (!mC) return null;
+      // YTD years carry a Jaws precomputed vs the same period prior year (H1 vs H1).
+      if (mC.ytd_prior) return (mC.jaws_ratio as number) ?? null;
       const gmC = (mC.gross_margin as number) ?? null;
-      const gmP = (mP.gross_margin as number) ?? null;
+      const gmP = growthBase(annual, entity, year, "gross_margin");
+      const adminP = growthBase(annual, entity, year, "admin_expenses");
+      const deprP = growthBase(annual, entity, year, "depreciation");
       const costC = ((mC.admin_expenses as number) ?? 0) + ((mC.depreciation as number) ?? 0);
-      const costP = ((mP.admin_expenses as number) ?? 0) + ((mP.depreciation as number) ?? 0);
+      const costP = (adminP ?? 0) + (deprP ?? 0);
       if (gmC == null || gmP == null || gmP === 0 || costP === 0) return null;
       const revGrowth = ((gmC - gmP) / Math.abs(gmP)) * 100;
       const costGrowth = ((costC - costP) / Math.abs(costP)) * 100;

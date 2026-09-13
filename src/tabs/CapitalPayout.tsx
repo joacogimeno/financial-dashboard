@@ -8,6 +8,8 @@ import { ENTITY_NAMES } from "../lib/types";
 import { ENTITY_COLORS, POSITIVE_COLOR, NEGATIVE_COLOR } from "../lib/colors";
 import ChartTooltip from "../components/ChartTooltip";
 import PeerTable from "../components/PeerTable";
+import YtdBanner from "../components/YtdBanner";
+import { isYtdYear, shortYearLabel, yearLabel } from "../lib/periods";
 
 interface Props {
   annual: AnnualJSON;
@@ -147,7 +149,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
 
   // Dividend history — stacked bar per entity per year
   const divHistoryData = years.map((y) => {
-    const row: Record<string, string | number | null> = { year: y };
+    const row: Record<string, string | number | null> = { year: shortYearLabel(annual, y) };
     for (const e of ENTITY_NAMES) {
       const val = annual.data[y]?.[e]?.dividends_paid;
       row[e] = val != null ? Math.abs(val as number) : 0;
@@ -159,7 +161,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
   // Full retention (ECPN present, null payout) → 0 so the line appears at the baseline
   // No ECPN data → null so no dot is rendered
   const payoutTrendData = years.map((y) => {
-    const row: Record<string, string | number | null> = { year: y };
+    const row: Record<string, string | number | null> = { year: shortYearLabel(annual, y) };
     for (const e of ENTITY_NAMES) {
       const ed = annual.data[y]?.[e];
       const pr = ed?.payout_ratio_pct as number | undefined;
@@ -183,6 +185,9 @@ export default function CapitalPayout({ annual, entity }: Props) {
   // Dynamic interpretation note for the selected entity and year
   const interpretationNote = (() => {
     if (!hasEcpnData) {
+      if (isYtdYear(annual, selectedYear)) {
+        return `The equity-change statement (ECPN) is published only at year-end, so dividend, payout and capital-action data for ${entity} is not yet available for ${yearLabel(annual, selectedYear)}. Balance-sheet equity is shown as of the latest quarter.`;
+      }
       return `No equity statement (ECPN) data is available for ${entity} in ${selectedYear}.`;
     }
     if (Math.abs(divPaid ?? 0) < 0.01) {
@@ -220,6 +225,8 @@ export default function CapitalPayout({ annual, entity }: Props) {
           ))}
         </div>
       </div>
+
+      <YtdBanner annual={annual} year={selectedYear} />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
@@ -266,7 +273,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
         {/* Equity Bridge Waterfall */}
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
           <h3 className="text-sm font-semibold text-slate-300 mb-4">
-            Equity Bridge — {entity} FY {selectedYear}
+            Equity Bridge — {entity} {yearLabel(annual, selectedYear)}
           </h3>
           {hasBridgeData ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -309,7 +316,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
         {/* Peer Payout Comparison */}
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
           <h3 className="text-sm font-semibold text-slate-300 mb-4">
-            Peer Payout Comparison — FY {selectedYear}
+            Peer Payout Comparison — {yearLabel(annual, selectedYear)}
           </h3>
           <p className="text-[10px] text-slate-500 mb-3">
             Bar shows display value (capped at 110%). Tooltip and table show actual payout ratio. Zero bar = full retention.
@@ -495,7 +502,7 @@ export default function CapitalPayout({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         highlightEntity={entity}
-        title={`Capital & Payout — FY ${selectedYear}`}
+        title={`Capital & Payout — ${yearLabel(annual, selectedYear)}`}
         columns={[
           { key: "dividends_paid", label: "Dividends (€M)", format: (v) => v === 0 ? "—" : `€${Math.abs(v).toFixed(0)}M`, higherIsBetter: false },
           { key: "net_profit", label: "Net Profit", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },

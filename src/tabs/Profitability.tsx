@@ -4,6 +4,8 @@ import { ENTITY_NAMES } from "../lib/types";
 import TrendChart from "../components/TrendChart";
 import BarComparisonChart from "../components/BarComparisonChart";
 import PeerTable from "../components/PeerTable";
+import YtdBanner from "../components/YtdBanner";
+import { yearLabel } from "../lib/periods";
 
 interface Props {
   annual: AnnualJSON;
@@ -53,6 +55,8 @@ export default function Profitability({ annual, entity }: Props) {
           ))}
         </div>
       </div>
+
+      <YtdBanner annual={annual} year={selectedYear} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -109,7 +113,7 @@ export default function Profitability({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         metric="net_profit"
-        title={`Net Profit Comparison — FY ${selectedYear} (€M)`}
+        title={`Net Profit Comparison — ${yearLabel(annual, selectedYear)} (€M)`}
         formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
@@ -130,7 +134,7 @@ export default function Profitability({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         metric="tangible_equity"
-        title={`Tangible Equity Comparison — FY ${selectedYear} (€M)`}
+        title={`Tangible Equity Comparison — ${yearLabel(annual, selectedYear)} (€M)`}
         formatValue={(v) => `€${v.toFixed(0)}M`}
         highlightEntity={entity}
       />
@@ -140,7 +144,7 @@ export default function Profitability({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         highlightEntity={entity}
-        title={`Profitability & Solvency — FY ${selectedYear}`}
+        title={`Profitability & Solvency — ${yearLabel(annual, selectedYear)}`}
         columns={[
           { key: "roe_pct", label: "ROE", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: true },
           { key: "roa_pct", label: "ROA", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },

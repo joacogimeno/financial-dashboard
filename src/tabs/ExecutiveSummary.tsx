@@ -2,9 +2,11 @@ import type { AnnualJSON, EntityName } from "../lib/types";
 import { useState } from "react";
 import { KPI_DEFS } from "../lib/kpis";
 import { generateCommentary, getEntityRank } from "../lib/commentary";
+import { isYtdYear, yearLabel } from "../lib/periods";
 import KPICard from "../components/KPICard";
 import CommentaryBox from "../components/CommentaryBox";
 import PeerTable from "../components/PeerTable";
+import YtdBanner from "../components/YtdBanner";
 
 interface Props {
   annual: AnnualJSON;
@@ -15,7 +17,11 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
   const years = annual._metadata.years.map(String);
   const latestYear = years[years.length - 1];
   const [selectedYear, setSelectedYear] = useState(latestYear);
-  const commentaries = generateCommentary(annual, entity, selectedYear);
+  const ytd = isYtdYear(annual, selectedYear);
+  // The annual commentary generator assumes full-year figures; for a YTD year it
+  // would compare part-year flows to prior full years and mislead. Suppress it and
+  // point to the Quarterly P&L tab, whose commentary is QoQ/YoY-accurate.
+  const commentaries = ytd ? [] : generateCommentary(annual, entity, selectedYear);
 
   return (
     <div className="space-y-8">
@@ -23,7 +29,7 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-200">
-            Key Performance Indicators — FY {selectedYear}
+            Key Performance Indicators — {yearLabel(annual, selectedYear)}
           </h2>
           <div className="flex items-center gap-1">
             {years.map((y) => (
@@ -40,6 +46,9 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
               </button>
             ))}
           </div>
+        </div>
+        <div className="mb-4">
+          <YtdBanner annual={annual} year={selectedYear} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {KPI_DEFS.map((kpi) => {
@@ -65,11 +74,30 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
         <h2 className="text-lg font-semibold text-slate-200 mb-4">
           Automated Intelligence
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {commentaries.map((c, i) => (
-            <CommentaryBox key={i} commentary={c} />
-          ))}
-        </div>
+        {ytd ? (
+          <div className="rounded-xl border border-blue-500/40 bg-blue-950/30 p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">💡</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Data Insight
+              </span>
+            </div>
+            <h4 className="text-sm font-semibold text-slate-200 mb-2">Year-to-date view</h4>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Automated intelligence is generated on full-year results to keep peer
+              comparisons like-for-like. For current-year performance, see the{" "}
+              <span className="font-semibold text-blue-300">Quarterly P&amp;L</span> tab,
+              whose commentary covers {entity}&rsquo;s QoQ and YoY momentum and peer
+              positioning for {yearLabel(annual, selectedYear)}.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {commentaries.map((c, i) => (
+              <CommentaryBox key={i} commentary={c} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Peer Comparison Table */}
@@ -77,7 +105,7 @@ export default function ExecutiveSummary({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         highlightEntity={entity}
-        title={`Peer Comparison — FY ${selectedYear}`}
+        title={`Peer Comparison — ${yearLabel(annual, selectedYear)}`}
         columns={[
           { key: "gross_margin", label: "Gross Margin", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },
           { key: "net_fee_income", label: "Net Fee Inc.", format: (v) => `€${v.toFixed(1)}M`, higherIsBetter: true },

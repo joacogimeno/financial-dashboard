@@ -38,12 +38,15 @@ export default function TrendChart({
   highlightEntity = "Inversis",
   height = 300,
 }: Props) {
+  const annualYtd = isAnnual(data) ? data._metadata.ytd : undefined;
   const periods = isAnnual(data)
     ? data._metadata.years.map(String)
     : (data as QuarterlyJSON).quarters;
 
   const chartData = periods.map((p) => {
-    const row: Record<string, string | number | null> = { period: p };
+    // Tag a partial (YTD) year on the axis so its lower €M point is self-explanatory.
+    const label = annualYtd?.[p] ? `${p} YTD` : p;
+    const row: Record<string, string | number | null> = { period: label };
     for (const entity of entities) {
       row[entity] = (data.data[p]?.[entity]?.[metric] as number) ?? null;
     }

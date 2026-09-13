@@ -14,6 +14,8 @@ import { ENTITY_NAMES } from "../lib/types";
 import TrendChart from "../components/TrendChart";
 import PeerTable from "../components/PeerTable";
 import ChartTooltip from "../components/ChartTooltip";
+import YtdBanner from "../components/YtdBanner";
+import { shortYearLabel, yearLabel } from "../lib/periods";
 
 interface Props {
   annual: AnnualJSON;
@@ -49,7 +51,7 @@ export default function Efficiency({ annual, entity }: Props) {
   const breakdownData = years.map((y) => {
     const d = annual.data[y]?.[entity];
     return {
-      year: y,
+      year: shortYearLabel(annual, y),
       "Staff Costs": d?.staff_costs != null ? Math.abs(d.staff_costs as number) : 0,
       "Other Admin": d?.other_admin != null ? Math.abs(d.other_admin as number) : 0,
       Depreciation: d?.depreciation != null ? Math.abs(d.depreciation as number) : 0,
@@ -77,6 +79,8 @@ export default function Efficiency({ annual, entity }: Props) {
           ))}
         </div>
       </div>
+
+      <YtdBanner annual={annual} year={selectedYear} />
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -174,7 +178,7 @@ export default function Efficiency({ annual, entity }: Props) {
         data={annual}
         year={selectedYear}
         highlightEntity={entity}
-        title={`Efficiency Metrics — FY ${selectedYear}`}
+        title={`Efficiency Metrics — ${yearLabel(annual, selectedYear)}`}
         columns={[
           { key: "cost_to_income_pct", label: "C/I Ratio", format: (v) => `${v.toFixed(1)}%`, higherIsBetter: false },
           { key: "jaws_ratio", label: "Jaws", format: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}pp`, higherIsBetter: true },

@@ -1,7 +1,17 @@
 import { Line, LineChart, ResponsiveContainer } from "recharts";
-import type { AnnualJSON, KPIDef, EntityName } from "../lib/types";
+import type { AnnualJSON, KPIDef, EntityName, MetricKey } from "../lib/types";
 import { ENTITY_COLORS } from "../lib/colors";
 import { POSITIVE_COLOR, NEGATIVE_COLOR } from "../lib/colors";
+import { isYtdYear, ytdInfo, ytdPeriodTag } from "../lib/periods";
+
+// €M flow metrics: for a YTD year these are actual part-year figures, so their
+// momentum must be measured against the same period last year (ytd_prior), not
+// the prior full year. Ratio/bps metrics are annualised and compare to prior FY.
+const FLOW_EUR_KEYS = new Set<MetricKey>([
+  "net_fee_income", "gross_margin", "nii", "net_profit", "admin_expenses",
+  "staff_costs", "other_admin", "depreciation", "trading_and_other",
+  "net_operating_income", "pre_tax_profit", "total_provisions_impairments",
+]);
 
 interface Props {
   kpi: KPIDef;
@@ -22,7 +32,17 @@ export default function KPICard({ kpi, data, entity, selectedYear, peerRank, pee
     kpi.compute ? kpi.compute(data, entity, y) : (data.data[y]?.[entity]?.[kpi.key] as number) ?? null;
 
   const currentVal = getValue(latest);
-  const priorVal = prior ? getValue(prior) : null;
+
+  // For a YTD year, €M flow metrics compare like-for-like against the same
+  // period last year (ytd_prior); everything else compares to the prior year.
+  const ytd = isYtdYear(data, selectedYear);
+  const ytdPrior = ytd ? data.data[selectedYear]?.[entity]?.ytd_prior : null;
+  const usedYtdPrior = !kpi.compute && ytdPrior != null && FLOW_EUR_KEYS.has(kpi.key);
+  const priorVal = usedYtdPrior
+    ? ((ytdPrior![kpi.key] as number) ?? null)
+    : prior
+      ? getValue(prior)
+      : null;
 
   const isPct = kpi.unit === "%";
   const yoyDelta =
@@ -33,7 +53,13 @@ export default function KPICard({ kpi, data, entity, selectedYear, peerRank, pee
           ? ((currentVal - priorVal) / Math.abs(priorVal)) * 100
           : null
       : null;
-  const yoyLabel = isPct ? "pp YoY" : "% YoY";
+  const unitLabel = isPct ? "pp" : "%";
+  const prevShort = `'${String(Number(selectedYear) - 1).slice(-2)}`;
+  const yoyLabel = usedYtdPrior
+    ? `${unitLabel} vs ${ytdPeriodTag(ytdInfo(data, selectedYear)!)} ${prevShort}`
+    : ytd
+      ? `${unitLabel} vs FY${prevShort}`
+      : `${unitLabel} YoY`;
 
   const sparkData = years.map((y) => ({
     year: y,
@@ -42,6 +68,12 @@ export default function KPICard({ kpi, data, entity, selectedYear, peerRank, pee
 
   const isPositiveMove =
     yoyDelta != null ? (kpi.higherIsBetter ? yoyDelta > 0 : yoyDelta < 0) : null;
+
+  // For a growth-rate KPI in a YTD year the headline is already H1-vs-H1, so a
+  // "change in growth rate" delta would confuse — show the comparison basis instead.
+  const showBasisOnly = ytd && kpi.growthRate === true;
+  const basisTag = ytd ? ytdPeriodTag(ytdInfo(data, selectedYear)!) : "";
+  const basisText = showBasisOnly ? `${basisTag} vs ${basisTag} ${prevShort}` : "";
 
   return (
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 transition-colors">
@@ -84,7 +116,9 @@ export default function KPICard({ kpi, data, entity, selectedYear, peerRank, pee
       </div>
 
       <div className="flex items-center justify-between">
-        {yoyDelta != null ? (
+        {showBasisOnly ? (
+          <span className="text-xs text-slate-500">{basisText}</span>
+        ) : yoyDelta != null ? (
           <span
             className="text-xs font-medium flex items-center gap-1"
             style={{ color: isPositiveMove ? POSITIVE_COLOR : NEGATIVE_COLOR }}

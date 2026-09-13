@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { AnnualJSON, EntityName, EntityMetrics, MetricKey } from "../lib/types";
+import { isYtdYear, shortYearLabel, yearLabel, ytdInfo, ytdPeriodTag } from "../lib/periods";
 import WaterfallChart from "../components/WaterfallChart";
 import TrendChart from "../components/TrendChart";
 import PeerTable from "../components/PeerTable";
+import YtdBanner from "../components/YtdBanner";
 
 interface Props {
   annual: AnnualJSON;
@@ -75,6 +77,19 @@ export default function IncomeStatement({ annual, entity }: Props) {
   const [selectedYear, setSelectedYear] = useState(latestYear);
   const selectedData = annual.data[selectedYear]?.[entity] ?? ({} as EntityMetrics);
 
+  // The P&L table's change column compares the two most recent columns. When the
+  // latest year is YTD, compare against the same period last year (ytd_prior) so
+  // €M lines are like-for-like (H1 vs H1) rather than half-year vs full-year.
+  const latestIsYtd = isYtdYear(annual, latestYear);
+  const cmpData: EntityMetrics | null = latestIsYtd
+    ? annual.data[latestYear]?.[entity]?.ytd_prior ?? null
+    : years.length > 1
+      ? annual.data[years[years.length - 2]]?.[entity] ?? null
+      : null;
+  const changeHeader = latestIsYtd
+    ? `vs ${ytdPeriodTag(ytdInfo(annual, latestYear)!)} '${String(Number(latestYear) - 1).slice(-2)}`
+    : "YoY %";
+
   // Summary cards
   const feeMix = selectedData.fee_mix_pct;
   const costToIncome = selectedData.cost_to_income_pct;
@@ -105,6 +120,8 @@ export default function IncomeStatement({ annual, entity }: Props) {
           ))}
         </div>
       </div>
+
+      <YtdBanner annual={annual} year={selectedYear} />
 
       {/* Waterfall Chart */}
       <WaterfallChart data={selectedData} />
@@ -145,7 +162,7 @@ export default function IncomeStatement({ annual, entity }: Props) {
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-700/50">
           <h3 className="text-sm font-semibold text-slate-300">
-            {entity} — Income Statement ({years[0]}–{latestYear})
+            {entity} — Income Statement ({years[0]}–{shortYearLabel(annual, latestYear)})
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -160,11 +177,11 @@ export default function IncomeStatement({ annual, entity }: Props) {
                     key={y}
                     className="text-right px-4 py-3 text-xs text-slate-400 uppercase tracking-wider font-medium"
                   >
-                    {y}
+                    {shortYearLabel(annual, y)}
                   </th>
                 ))}
                 <th className="text-right px-4 py-3 text-xs text-slate-400 uppercase tracking-wider font-medium">
-                  YoY %
+                  {changeHeader}
                 </th>
               </tr>
             </thead>
@@ -186,7 +203,13 @@ export default function IncomeStatement({ annual, entity }: Props) {
                 });
 
                 const latestVal = values[values.length - 1];
-                const priorVal = values.length > 1 ? values[values.length - 2] : null;
+                const priorVal = row.compute
+                  ? cmpData
+                    ? row.compute(cmpData)
+                    : null
+                  : row.key
+                    ? (cmpData?.[row.key] as number | null | undefined) ?? null
+                    : null;
                 const yoy = yoyPct(latestVal, priorVal);
 
                 return (
@@ -263,7 +286,7 @@ export default function IncomeStatement({ annual, entity }: Props) {
         data={annual}
         year={latestYear}
         highlightEntity={entity}
-        title={`Peer P&L Comparison — FY ${latestYear}`}
+        title={`Peer P&L Comparison — ${yearLabel(annual, latestYear)}`}
         columns={[
           { key: "gross_margin", label: "Gross Margin", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },
           { key: "net_operating_income", label: "Op. Profit", format: (v) => `€${v.toFixed(0)}M`, higherIsBetter: true },

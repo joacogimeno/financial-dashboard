@@ -17,6 +17,8 @@ import TrendChart from "../components/TrendChart";
 import BarComparisonChart from "../components/BarComparisonChart";
 import PeerTable from "../components/PeerTable";
 import ChartTooltip from "../components/ChartTooltip";
+import YtdBanner from "../components/YtdBanner";
+import { yearLabel } from "../lib/periods";
 
 interface Props {
   annual: AnnualJSON;
@@ -95,6 +97,8 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
           ))}
         </div>
       </div>
+
+      <YtdBanner annual={annual} year={selectedYear} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
@@ -201,7 +205,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
       {/* Funding Structure — Peer Comparison */}
       <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
         <h3 className="text-sm font-semibold text-slate-300 mb-4">
-          Funding Structure — FY {latestYear} ({"€"}M)
+          Funding Structure — {yearLabel(annual, latestYear)} ({"€"}M)
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={fundingPeerData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -233,7 +237,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
         data={annual}
         year={selectedYear}
         metric="client_funding_ratio_pct"
-        title={`Client Funding Ratio — FY ${selectedYear} (%)`}
+        title={`Client Funding Ratio — ${yearLabel(annual, selectedYear)} (%)`}
         formatValue={(v) => `${v.toFixed(1)}%`}
         highlightEntity={entity}
         matchTooltipValueColorToBar
@@ -244,7 +248,7 @@ export default function Treasury({ annual, quarterly, entity }: Props) {
         data={annual}
         year={selectedYear}
         highlightEntity={entity}
-        title={`Treasury & Balance Sheet — FY ${selectedYear}`}
+        title={`Treasury & Balance Sheet — ${yearLabel(annual, selectedYear)}`}
         columns={[
           { key: "interest_spread_pct", label: "Spread", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
           { key: "earning_asset_yield_pct", label: "Earning Yield", format: (v) => `${v.toFixed(2)}%`, higherIsBetter: true },
