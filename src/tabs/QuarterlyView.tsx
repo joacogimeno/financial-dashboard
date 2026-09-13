@@ -2,7 +2,9 @@ import { useState } from "react";
 import type { QuarterlyJSON, EntityName, EntityMetrics } from "../lib/types";
 import { ENTITY_NAMES } from "../lib/types";
 import { ENTITY_COLORS } from "../lib/colors";
+import { generateQuarterlyCommentary } from "../lib/quarterlyCommentary";
 import TrendChart from "../components/TrendChart";
+import CommentaryBox from "../components/CommentaryBox";
 
 interface Props {
   quarterly: QuarterlyJSON;
@@ -79,6 +81,10 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
     compareQ = quarters.includes(yoyCandidate) ? yoyCandidate : null;
   }
   const compareData = compareQ ? quarterly.data[compareQ] : null;
+
+  // Automated intelligence for the selected quarter (covers both QoQ and YoY
+  // internally, plus peer positioning — independent of the compare toggle).
+  const commentaries = generateQuarterlyCommentary(quarterly, entity, selectedQ);
 
   return (
     <div className="space-y-8">
@@ -241,6 +247,23 @@ export default function QuarterlyView({ quarterly, entity }: Props) {
           </table>
         </div>
       </div>
+
+      {/* Automated Intelligence — selected quarter */}
+      {commentaries.length > 0 && (
+        <div>
+          <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold text-slate-200">
+              Automated Intelligence — {entity}, {selectedQ}
+            </h2>
+            <span className="text-xs text-slate-500">QoQ &amp; YoY vs peer group</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {commentaries.map((c, i) => (
+              <CommentaryBox key={i} commentary={c} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quarterly Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
