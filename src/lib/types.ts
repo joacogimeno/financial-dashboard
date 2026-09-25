@@ -28,6 +28,10 @@ export interface EntityMetrics {
   gains_held_for_sale?: number | null;
   // P&L — Tax
   tax_charge?: number | null;
+  // Trading / financial operations (ROF, bank basis) + FX, isolated from the
+  // 4701 P&L for benchmarking against the CNMV securities-firms market.
+  rof?: number | null;
+  fx_result?: number | null;
   // Derived — P&L Waterfall
   trading_and_other?: number | null;
   net_operating_income?: number | null;

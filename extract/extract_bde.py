@@ -104,6 +104,23 @@ PL_ROWS = {
     "E) RESULTADO DEL EJERCICIO":                          "net_profit",
 }
 
+# ROF (Resultado de Operaciones Financieras, bank basis): the net financial-
+# instrument gains/losses lines between NII and Gross Margin. Summed to mirror
+# CNMV's "Resultado de inversiones financieras" for benchmarking the securities
+# firms market. FX ("Diferencias de cambio") is captured separately, matching
+# CNMV's presentation (it shows FX on its own line). Only the top-level net
+# lines are listed — their indented sub-breakdowns are deliberately excluded to
+# avoid double counting, and the pre-Gross-Margin window guard keeps the later
+# "activos no financieros" disposal line out.
+ROF_ROW_PREFIXES = [
+    "Ganancias o (-) pérdidas al dar de baja en cuentas activos y pasivos financieros no valorados",
+    "Ganancias o (-) pérdidas por activos y pasivos financieros mantenidos para negociar",
+    "Ganancias o (-) pérdidas por activos financieros no destinados a negociación",
+    "Ganancias o (-) pérdidas por activos y pasivos financieros designados a valor razonable",
+    "Ganancias o (-) pérdidas resultantes de la contabilidad de coberturas",
+]
+FX_ROW_PREFIX = "Diferencias de cambio"
+
 # Balance sheet rows
 BS_ROWS = {
     "assets": {
@@ -146,10 +163,39 @@ def extract_pl(filepath: str) -> dict[str, dict[str, float | None]]:
     result: dict[str, dict[str, float | None]] = {e: {} for e in ENTITY_NAMES}
 
     matched: set[str] = set()
+    # ROF / FX are summed across several rows, only within the window before
+    # "B) MARGEN BRUTO". Track running totals + component counts per entity.
+    rof_sum: dict[str, float] = {e: 0.0 for e in ENTITY_NAMES}
+    rof_cnt: dict[str, int] = {e: 0 for e in ENTITY_NAMES}
+    fx_val: dict[str, float | None] = {e: None for e in ENTITY_NAMES}
+    in_window = False
+
     for i in range(3, len(df)):
         label = str(df.iloc[i, 0]).strip()
         if label == "nan":
             continue
+        if label.startswith("A) MARGEN DE INTERESES"):
+            in_window = True
+        elif label.startswith("B) MARGEN BRUTO"):
+            in_window = False
+
+        if in_window:
+            is_rof = any(label.startswith(p) for p in ROF_ROW_PREFIXES)
+            is_fx = label.startswith(FX_ROW_PREFIX)
+            if is_rof or is_fx:
+                for entity in ENTITY_NAMES:
+                    if entity not in cols:
+                        continue
+                    val = df.iloc[i, cols[entity]]
+                    if pd.isna(val):
+                        continue
+                    m = float(val) / 1e6
+                    if is_rof:
+                        rof_sum[entity] += m
+                        rof_cnt[entity] += 1
+                    else:
+                        fx_val[entity] = round(m, 2)
+
         for keyword, metric in PL_ROWS.items():
             if metric in matched:
                 continue
@@ -160,6 +206,10 @@ def extract_pl(filepath: str) -> dict[str, dict[str, float | None]]:
                         result[entity][metric] = round(float(val) / 1e6, 2) if pd.notna(val) else None
                 matched.add(metric)
                 break
+
+    for entity in ENTITY_NAMES:
+        result[entity]["rof"] = round(rof_sum[entity], 2) if rof_cnt[entity] else None
+        result[entity]["fx_result"] = fx_val[entity]
     return result
 
 
@@ -665,7 +715,7 @@ def main():
     # Metrics that are YTD cumulative in BdE (P&L items)
     ytd_metrics = set(PL_ROWS.values()) | {
         "net_fee_income", "trading_and_other", "net_operating_income",
-        "total_provisions_impairments",
+        "total_provisions_impairments", "rof", "fx_result",
     }
     # Metrics that are point-in-time (balance sheet) — no subtraction needed
     pit_metrics = {

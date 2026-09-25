@@ -1,0 +1,117 @@
+import { useState } from "react";
+import type { EsiAnnualJSON, EsiQuarterlyJSON } from "../../lib/esiTypes";
+import { INVERSIS, MARKET_SV, MARKET_AV, AVG_SV } from "../../lib/esiEntities";
+import { COMMISSION_SUBTYPES, val, annualGrowth, fmtM, fmtPct, fmtPctPlain } from "../../lib/esiKpis";
+import { ytdNote } from "../../lib/periods";
+import type { AnnualJSON } from "../../lib/types";
+import EsiTrendChart from "../../components/esi/EsiTrendChart";
+import { esiColor, INVERSIS_BASIS_NOTE } from "../../lib/esiEntities";
+
+interface Props {
+  annual: EsiAnnualJSON;
+  quarterly: EsiQuarterlyJSON;
+}
+
+export default function MarketOverview({ annual, quarterly }: Props) {
+  const years = annual._metadata.years.map(String);
+  const [year, setYear] = useState(years[years.length - 1]);
+  const isYtd = annual._metadata.ytd?.[year] != null;
+  // ytdNote reads only _metadata.ytd; safe to reuse via a structural cast.
+  const note = isYtd ? ytdNote(annual as unknown as AnnualJSON, year) : null;
+
+  const stat = (name: string, key: Parameters<typeof val>[1]) => ({
+    v: val(annual.data[year]?.[name], key),
+    g: annualGrowth(annual, name, year, key),
+  });
+  const svCount = annual._metadata.entities.filter((e) => e.kind === "firm" && e.segment === "SV").length;
+  const avCount = annual._metadata.entities.filter((e) => e.kind === "firm" && e.segment === "AV").length;
+
+  const cards = [
+    { label: `Sociedades de Valores · comisiones netas`, sub: `total of ${svCount} firms`, ...stat(MARKET_SV, "comisiones_netas"), color: esiColor(MARKET_SV) },
+    { label: `Agencias de Valores · comisiones netas`, sub: `total of ${avCount} firms`, ...stat(MARKET_AV, "comisiones_netas"), color: esiColor(MARKET_AV) },
+    { label: "Sociedades de Valores · ROF", sub: "market total", ...stat(MARKET_SV, "rof"), color: esiColor(MARKET_SV) },
+    { label: "Sociedades de Valores · margen bruto", sub: "market total", ...stat(MARKET_SV, "margen_bruto"), color: esiColor(MARKET_SV) },
+  ];
+
+  // SV market commission composition (sub-types as % of comisiones percibidas).
+  const svComTotal = val(annual.data[year]?.[MARKET_SV], "comisiones_percibidas");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-white">Securities-firms market — overview</h2>
+          <p className="text-sm text-slate-400 mt-1">
+            CNMV market totals ({svCount} Sociedades + {avCount} Agencias de Valores). Inversis (bank-basis) shown for reference.
+          </p>
+        </div>
+        <select value={year} onChange={(e) => setYear(e.target.value)}
+          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200">
+          {years.map((y) => <option key={y} value={y}>{annual._metadata.ytd?.[y] ? `${y} YTD` : `FY ${y}`}</option>)}
+        </select>
+      </div>
+
+      {note && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-950/20 px-4 py-2.5">
+          <span className="text-sm leading-none mt-0.5">🕐</span>
+          <p className="text-xs text-slate-400 leading-relaxed">{note}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((c) => (
+          <div key={c.label} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: c.color }} />
+              <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">{c.label}</p>
+            </div>
+            <p className="text-2xl font-bold text-white">{c.v != null ? fmtM(c.v) : "N/A"}</p>
+            <div className="flex items-center gap-2 mt-1">
+              {c.g != null && <span className="text-xs" style={{ color: c.g >= 0 ? "#34d399" : "#f87171" }}>{fmtPct(c.g)} YoY</span>}
+              <span className="text-[10px] text-slate-500">{c.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Commission composition of the SV market */}
+      <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
+        <h3 className="text-sm font-semibold text-slate-300 mb-4">
+          SV market commission mix — where the fees come from
+        </h3>
+        <div className="space-y-2.5">
+          {COMMISSION_SUBTYPES.map((s) => {
+            const v = val(annual.data[year]?.[MARKET_SV], s.key);
+            const pct = v != null && svComTotal ? (v / svComTotal) * 100 : null;
+            return (
+              <div key={s.key} className="flex items-center gap-3">
+                <span className="text-xs text-slate-400 w-44 flex-shrink-0">{s.label}</span>
+                <div className="flex-1 h-4 bg-slate-800 rounded overflow-hidden">
+                  <div className="h-full rounded" style={{ width: `${pct ?? 0}%`, background: esiColor(MARKET_SV) }} />
+                </div>
+                <span className="text-xs font-mono text-slate-300 w-28 text-right">
+                  {v != null ? fmtM(v) : "—"} {pct != null && <span className="text-slate-500">({fmtPctPlain(pct)})</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-slate-500 mt-3">
+          Sub-types are disclosed only at the market-aggregate level (not per firm). "Tramitación y ejecución" ≈ execution,
+          "Depósito y anotación" ≈ custody, "Comercialización de IIC" ≈ fund distribution.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EsiTrendChart data={quarterly} metric="comisiones_netas"
+          title="Comisiones netas — quarterly (€M)"
+          entities={[INVERSIS, MARKET_SV, MARKET_AV, AVG_SV]} formatValue={fmtM} height={280} />
+        <EsiTrendChart data={quarterly} metric="rof"
+          title="ROF — quarterly (€M)"
+          entities={[INVERSIS, MARKET_SV, MARKET_AV]} formatValue={fmtM} height={280} />
+      </div>
+
+      <p className="text-[11px] text-slate-500 leading-relaxed">{INVERSIS_BASIS_NOTE}</p>
+    </div>
+  );
+}
