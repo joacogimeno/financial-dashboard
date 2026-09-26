@@ -1,7 +1,14 @@
 import { useState } from "react";
 import type { EsiAnnualJSON, EsiQuarterlyJSON } from "../../lib/esiTypes";
 import { INVERSIS, MARKET_SV, MARKET_AV, AVG_SV } from "../../lib/esiEntities";
-import { COMMISSION_SUBTYPES, val, annualGrowth, fmtM, fmtPct, fmtPctPlain } from "../../lib/esiKpis";
+import { COMMISSION_SUBTYPES, val, annualGrowth, fmtM, fmtPct, fmtPctPlain, type DisplayKey } from "../../lib/esiKpis";
+
+const ROF_INSTR: { key: DisplayKey; label: string }[] = [
+  { key: "rof_renta_fija", label: "Renta fija" },
+  { key: "rof_acciones", label: "Acciones" },
+  { key: "rof_derivados", label: "Derivados negoc." },
+  { key: "rof_otros", label: "Otros" },
+];
 import { ytdNote } from "../../lib/periods";
 import type { AnnualJSON } from "../../lib/types";
 import EsiTrendChart from "../../components/esi/EsiTrendChart";
@@ -100,6 +107,47 @@ export default function MarketOverview({ annual, quarterly }: Props) {
           Sub-types are disclosed only at the market-aggregate level (not per firm). "Tramitación y ejecución" ≈ execution,
           "Depósito y anotación" ≈ custody, "Comercialización de IIC" ≈ fund distribution.
         </p>
+      </div>
+
+      {/* ROF composition by instrument (SV vs AV market) */}
+      <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
+        <h3 className="text-sm font-semibold text-slate-300 mb-1">
+          ROF by instrument — where the market's trading result comes from
+        </h3>
+        <p className="text-[11px] text-slate-500 mb-4">
+          Net result of proprietary activity (ganancias − pérdidas), from the CNMV P&L. Fixed income dominates.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[{ name: MARKET_SV, label: "Sociedades de Valores" }, { name: MARKET_AV, label: "Agencias de Valores" }].map((m) => {
+            const total = val(annual.data[year]?.[m.name], "rof");
+            const maxAbs = Math.max(1, ...ROF_INSTR.map((r) => Math.abs(val(annual.data[year]?.[m.name], r.key) ?? 0)));
+            return (
+              <div key={m.name}>
+                <p className="text-xs font-medium text-slate-300 mb-2">
+                  {m.label} <span className="text-slate-500">· ROF total {total != null ? fmtM(total) : "—"}</span>
+                </p>
+                <div className="space-y-2">
+                  {ROF_INSTR.map((r) => {
+                    const v = val(annual.data[year]?.[m.name], r.key);
+                    const w = v != null ? (Math.abs(v) / maxAbs) * 100 : 0;
+                    const neg = (v ?? 0) < 0;
+                    return (
+                      <div key={r.key} className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 w-32 flex-shrink-0">{r.label}</span>
+                        <div className="flex-1 h-3.5 bg-slate-800 rounded overflow-hidden">
+                          <div className="h-full rounded" style={{ width: `${w}%`, background: neg ? "#f87171" : "#d97706" }} />
+                        </div>
+                        <span className="text-xs font-mono w-14 text-right" style={{ color: neg ? "#f87171" : "#cbd5e1" }}>
+                          {v != null ? fmtM(Math.abs(v) < 0.05 ? 0 : v) : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

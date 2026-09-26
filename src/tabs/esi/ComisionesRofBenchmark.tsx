@@ -103,7 +103,7 @@ export default function ComisionesRofBenchmark({ annual, quarterly }: Props) {
               <p className="text-xs text-slate-500 mt-2">
                 {share != null && <>≈ {share.toFixed(0)}% of the SV market</>}
                 {share != null && rank && rank.total >= 5 && " · "}
-                {rank && rank.total >= 5 && <>#{rank.rank} of {rank.total} firms</>}
+                {rank && rank.total >= 5 && <>#{rank.rank} of {rank.total} SV firms</>}
               </p>
             </div>
           );
@@ -160,7 +160,7 @@ export default function ComisionesRofBenchmark({ annual, quarterly }: Props) {
       {/* Revenue mix + trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
-          <h3 className="text-sm font-semibold text-slate-300 mb-4">Revenue mix — % of margen bruto</h3>
+          <h3 className="text-sm font-semibold text-slate-300 mb-4">Revenue mix — % of margen bruto (sums to 100%)</h3>
           <MixTable annual={annual} year={year} />
           <p className="text-[11px] text-slate-500 mt-3">
             The SV market earns far more of its margin from ROF (trading) than Inversis does — Inversis is fee-led.
@@ -206,11 +206,20 @@ function MixTable({ annual, year }: { annual: EsiAnnualJSON; year: string }) {
     { name: MARKET_SV, label: "SV market" },
     { name: MARKET_AV, label: "AV market" },
   ];
-  const rows: { key: DisplayKey; label: string }[] = [
+  // Full decomposition of margen bruto (sums to ~100% per entity). "Otros" is the
+  // residual (dividends, otros de explotación) so the column closes to 100%.
+  const rows: { key: DisplayKey | "otros"; label: string }[] = [
     { key: "comisiones_netas", label: "Comisiones netas" },
-    { key: "rof", label: "ROF" },
     { key: "margen_intereses", label: "Margen intereses" },
+    { key: "rof", label: "ROF" },
+    { key: "diferencias_cambio", label: "Dif. de cambio (FX)" },
+    { key: "otros", label: "Otros" },
   ];
+  const pctOf = (name: string, key: DisplayKey): number | null => {
+    const num = val(annual.data[year]?.[name], key);
+    const den = val(annual.data[year]?.[name], "margen_bruto");
+    return num != null && den != null && den !== 0 ? (num / den) * 100 : null;
+  };
   return (
     <table className="w-full text-sm">
       <thead>
@@ -224,9 +233,15 @@ function MixTable({ annual, year }: { annual: EsiAnnualJSON; year: string }) {
           <tr key={r.key} className="border-t border-slate-700/30">
             <td className="py-2.5 text-slate-300">{r.label}</td>
             {entities.map((e) => {
-              const num = val(annual.data[year]?.[e.name], r.key);
-              const den = val(annual.data[year]?.[e.name], "margen_bruto");
-              const pct = num != null && den != null && den !== 0 ? (num / den) * 100 : null;
+              let pct: number | null;
+              if (r.key === "otros") {
+                const parts = (["comisiones_netas", "margen_intereses", "rof", "diferencias_cambio"] as DisplayKey[])
+                  .map((k) => pctOf(e.name, k))
+                  .filter((p): p is number => p != null);
+                pct = parts.length ? 100 - parts.reduce((s, p) => s + p, 0) : null;
+              } else {
+                pct = pctOf(e.name, r.key);
+              }
               return <td key={e.name} className="text-right py-2.5 font-mono text-slate-300">{pct != null ? fmtPctPlain(pct) : "—"}</td>;
             })}
           </tr>

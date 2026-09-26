@@ -24,6 +24,11 @@ export interface EsiMetrics {
   // Other revenue
   margen_intereses?: number | null;
   rof?: number | null;                       // Resultado de operaciones financieras
+  // ROF net result by instrument (market aggregates only)
+  rof_renta_fija?: number | null;
+  rof_acciones?: number | null;
+  rof_derivados?: number | null;
+  rof_otros?: number | null;
   diferencias_cambio?: number | null;
   otros_explotacion?: number | null;
   margen_bruto?: number | null;

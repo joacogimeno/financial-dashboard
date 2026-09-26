@@ -22,7 +22,7 @@ export function esiCommentary(annual: EsiAnnualJSON, year: string): Commentary[]
   const isYtd = annual._metadata.ytd?.[year] != null;
   const basis = isYtd ? `${annual._metadata.ytd![year].label} vs same period prior year` : `FY ${year} vs prior year`;
 
-  // 1) Headline: comisiones percibidas vs the SV market.
+  // 1) Headline: comisiones netas vs the SV market.
   const invCom = annualGrowth(annual, INVERSIS, year, "comisiones_netas");
   const mktCom = annualGrowth(annual, MARKET_SV, year, "comisiones_netas");
   const vCom = verdict(invCom, mktCom);
@@ -71,14 +71,17 @@ export function esiCommentary(annual: EsiAnnualJSON, year: string): Commentary[]
   const leaders = moves.slice(0, 3);
   if (leaders.length && mktCom != null) {
     const parts = leaders.map((m) => {
+      // A pre-tax growth beyond ±200% is a small-base artifact, not real leverage —
+      // suppress it so the commentary doesn't quote misleading four-digit percentages.
+      const showRes = m.resG != null && Math.abs(m.resG) <= 200;
       const driver =
-        m.resG != null && m.resG > m.comG + 5
+        showRes && m.resG! > m.comG + 5
           ? "operating leverage"
           : m.comG > mktCom + 10
             ? "strong fee momentum"
             : "steady growth";
       const clientTag = m.tag === "client" ? " (client)" : "";
-      return `${esiDisplayName(m.name)}${clientTag} ${fmtPct(m.comG)}${m.resG != null ? `, pre-tax ${fmtPct(m.resG)}` : ""} — ${driver}`;
+      return `${esiDisplayName(m.name)}${clientTag} ${fmtPct(m.comG)}${showRes ? `, pre-tax ${fmtPct(m.resG!)}` : ""} — ${driver}`;
     });
     out.push({
       type: "recommendation",

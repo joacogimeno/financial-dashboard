@@ -177,6 +177,11 @@ export default function EsiLeagueTable({ data, quarterly, year }: Props) {
           </tbody>
         </table>
       </div>
+      <p className="px-5 py-2.5 text-[11px] text-slate-500 border-t border-slate-700/50">
+        "Ingresos no-com. (ROF+)" = margen bruto − comisiones netas. For the CNMV firms this is mostly trading/ROF;
+        for the <span className="text-blue-300">Inversis</span> row (bank-basis) it is dominated by net interest income,
+        so that single cell is not directly comparable to the securities firms.
+      </p>
     </div>
   );
 }

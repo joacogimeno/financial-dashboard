@@ -151,6 +151,37 @@ def _match_field(label: str):
     return None
 
 
+# ROF (Resultado de inversiones financieras) net result by instrument — summed
+# from the 3.1.x (ganancias) and 3.2.x (pérdidas) sub-lines. Lets the dashboard
+# show where the securities-firms market makes its trading result.
+ROF_INSTR = {
+    "3.1.1.": ("rof_renta_fija", 1), "3.1.2.": ("rof_renta_fija", 1), "3.1.3.": ("rof_renta_fija", 1),
+    "3.1.4.": ("rof_acciones", 1), "3.1.5.": ("rof_acciones", 1),
+    "3.1.6.": ("rof_derivados", 1),
+    "3.1.7.": ("rof_otros", 1), "3.1.8.": ("rof_otros", 1),
+    "3.2.1.": ("rof_renta_fija", -1), "3.2.2.": ("rof_renta_fija", -1), "3.2.3.": ("rof_renta_fija", -1),
+    "3.2.4.": ("rof_acciones", -1), "3.2.5.": ("rof_acciones", -1),
+    "3.2.6.": ("rof_derivados", -1),
+    "3.2.7.": ("rof_otros", -1), "3.2.8.": ("rof_otros", -1),
+}
+ROF_INSTR_FIELDS = ("rof_renta_fija", "rof_acciones", "rof_derivados", "rof_otros")
+
+
+def _rof_groups(df, col) -> dict:
+    """Net ROF by instrument group for one entity column (k€). {} if none found."""
+    groups = {f: 0.0 for f in ROF_INSTR_FIELDS}
+    found = False
+    for r in range(df.shape[0]):
+        m = re.match(r"^(\d+\.\d+\.\d+\.)", str(df.iat[r, 0]).strip())
+        if m and m.group(1) in ROF_INSTR:
+            field, sign = ROF_INSTR[m.group(1)]
+            v = _num(df.iat[r, col])
+            if v is not None:
+                groups[field] += sign * v
+                found = True
+    return {f: round(v, 3) for f, v in groups.items()} if found else {}
+
+
 # ---------------------------------------------------------------------------
 # Parse aggregate P&L (a period's SV-total and AV-total market lines)
 # ---------------------------------------------------------------------------
@@ -192,6 +223,9 @@ def parse_pyl_period(paths: list[Path], period: str) -> dict:
                     continue
                 result["SV"].setdefault(field, _num(df.iat[r, sv_col]))
                 result["AV"].setdefault(field, _num(df.iat[r, av_col]))
+            for seg, col in (("SV", sv_col), ("AV", av_col)):
+                for f, v in _rof_groups(df, col).items():
+                    result[seg].setdefault(f, v)
         else:
             # New per-entity layout: one file each for Total / SV / AV, with
             # year/quarter columns. Skip the Total file; pick the column matching
@@ -234,6 +268,8 @@ def parse_pyl_period(paths: list[Path], period: str) -> dict:
                 field = _match_field(str(df.iat[r, 0])) if pd.notna(df.iat[r, 0]) else None
                 if field:
                     result[entity].setdefault(field, _num(df.iat[r, target_col]))
+            for f, v in _rof_groups(df, target_col).items():
+                result[entity].setdefault(f, v)
     return result
 
 

@@ -808,7 +808,11 @@
     "resultado_explotacion": 88.966,
     "resultado_antes_impuestos": 110.72,
     "impuesto": 17.239,
-    "resultado_neto": 90.708
+    "resultado_neto": 90.708,
+    "rof_renta_fija": 20.728,
+    "rof_acciones": 5.871,
+    "rof_derivados": -21.138,
+    "rof_otros": 27.273
    },
    "Agencias de Valores": {
     "margen_intereses": 0.454,
@@ -831,7 +835,11 @@
     "resultado_explotacion": 26.155,
     "resultado_antes_impuestos": 30.001,
     "impuesto": 7.199,
-    "resultado_neto": 22.802
+    "resultado_neto": 22.802,
+    "rof_renta_fija": 0.0,
+    "rof_acciones": 0.659,
+    "rof_derivados": 0.0,
+    "rof_otros": 0.007
    },
    "ALANTRA CAPITAL MARKETS, SV, SA": {
     "fondos_propios": 4.997,
@@ -1666,7 +1674,11 @@
     "resultado_explotacion": 90.039,
     "resultado_antes_impuestos": 95.096,
     "impuesto": 12.94,
-    "resultado_neto": 82.156
+    "resultado_neto": 82.156,
+    "rof_renta_fija": 45.099,
+    "rof_acciones": 7.68,
+    "rof_derivados": 2.065,
+    "rof_otros": 2.715
    },
    "Agencias de Valores": {
     "margen_intereses": 0.96,
@@ -1689,7 +1701,11 @@
     "resultado_explotacion": 10.018,
     "resultado_antes_impuestos": 14.263,
     "impuesto": 3.899,
-    "resultado_neto": 10.364
+    "resultado_neto": 10.364,
+    "rof_renta_fija": 0.0,
+    "rof_acciones": -1.436,
+    "rof_derivados": 0.0,
+    "rof_otros": -0.043
    },
    "ALANTRA CAPITAL MARKETS, SV, SA": {
     "fondos_propios": 5.671,
@@ -2560,7 +2576,11 @@
     "resultado_explotacion": 102.285,
     "resultado_antes_impuestos": 108.421,
     "impuesto": 13.368,
-    "resultado_neto": 95.053
+    "resultado_neto": 95.053,
+    "rof_renta_fija": 38.947,
+    "rof_acciones": 4.151,
+    "rof_derivados": -2.192,
+    "rof_otros": 0.13
    },
    "Agencias de Valores": {
     "margen_intereses": 2.086,
@@ -2583,7 +2603,11 @@
     "resultado_explotacion": 16.991,
     "resultado_antes_impuestos": 20.006,
     "impuesto": 3.633,
-    "resultado_neto": 16.373
+    "resultado_neto": 16.373,
+    "rof_renta_fija": -0.02,
+    "rof_acciones": 1.821,
+    "rof_derivados": 0.0,
+    "rof_otros": -0.028
    },
    "ALANTRA CAPITAL MARKETS, SV, SA": {
     "fondos_propios": 4.208,
@@ -3481,7 +3505,11 @@
     "resultado_explotacion": 129.237,
     "resultado_antes_impuestos": 134.681,
     "impuesto": 24.468,
-    "resultado_neto": 110.213
+    "resultado_neto": 110.213,
+    "rof_renta_fija": 27.394,
+    "rof_acciones": 7.412,
+    "rof_derivados": -1.616,
+    "rof_otros": 1.132
    },
    "Agencias de Valores": {
     "margen_intereses": 3.963,
@@ -3504,7 +3532,11 @@
     "resultado_explotacion": 33.287,
     "resultado_antes_impuestos": 36.303,
     "impuesto": 8.424,
-    "resultado_neto": 27.879
+    "resultado_neto": 27.879,
+    "rof_renta_fija": 0.009,
+    "rof_acciones": 1.924,
+    "rof_derivados": 0.0,
+    "rof_otros": -0.011
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {
     "fondos_propios": 0.88,
@@ -4402,7 +4434,11 @@
     "resultado_explotacion": 124.187,
     "resultado_antes_impuestos": 126.69,
     "impuesto": 22.917,
-    "resultado_neto": 103.773
+    "resultado_neto": 103.773,
+    "rof_renta_fija": 26.882,
+    "rof_acciones": 13.687,
+    "rof_derivados": 2.373,
+    "rof_otros": -0.001
    },
    "Agencias de Valores": {
     "margen_intereses": 1.766,
@@ -4425,7 +4461,11 @@
     "resultado_explotacion": 29.044,
     "resultado_antes_impuestos": 35.922,
     "impuesto": 9.359,
-    "resultado_neto": 26.563
+    "resultado_neto": 26.563,
+    "rof_renta_fija": 0.009,
+    "rof_acciones": 1.42,
+    "rof_derivados": -0.057,
+    "rof_otros": 0.003
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {
     "fondos_propios": 0.895,
@@ -5351,6 +5391,10 @@
     "resultado_antes_impuestos": 76.269,
     "impuesto": 10.095,
     "resultado_neto": 66.174,
+    "rof_renta_fija": 15.626,
+    "rof_acciones": 8.92,
+    "rof_derivados": 3.581,
+    "rof_otros": 1.617,
     "ytd_prior": {
      "margen_intereses": 51.048,
      "comisiones_netas": 141.847,
@@ -5372,7 +5416,11 @@
      "resultado_explotacion": 79.482,
      "resultado_antes_impuestos": 80.697,
      "impuesto": 12.44,
-     "resultado_neto": 68.257
+     "resultado_neto": 68.257,
+     "rof_renta_fija": 14.929,
+     "rof_acciones": 7.836,
+     "rof_derivados": 1.869,
+     "rof_otros": 1.155
     }
    },
    "Agencias de Valores": {
@@ -5397,6 +5445,10 @@
     "resultado_antes_impuestos": 17.112,
     "impuesto": 3.319,
     "resultado_neto": 13.793,
+    "rof_renta_fija": 0.003,
+    "rof_acciones": 0.498,
+    "rof_derivados": -0.01,
+    "rof_otros": -0.013,
     "ytd_prior": {
      "margen_intereses": 0.959,
      "comisiones_netas": 105.378,
@@ -5418,7 +5470,11 @@
      "resultado_explotacion": 10.445,
      "resultado_antes_impuestos": 12.913,
      "impuesto": 1.842,
-     "resultado_neto": 11.071
+     "resultado_neto": 11.071,
+     "rof_renta_fija": 0.005,
+     "rof_acciones": 0.614,
+     "rof_derivados": -0.004,
+     "rof_otros": -0.004
     }
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {

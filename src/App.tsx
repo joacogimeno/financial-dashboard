@@ -25,12 +25,16 @@ import PeerClientLeague from "./tabs/esi/PeerClientLeague";
 const annual = annualRaw as unknown as AnnualJSON;
 const quarterly = quarterlyRaw as unknown as QuarterlyJSON;
 
-// ESI datasets: inject Inversis (bank-basis reference), then add average-firm lines.
-const esiAnnual = esiAnnualWithAverages(
-  esiAnnualWithInversis(esiAnnualRaw as unknown as EsiAnnualJSON, annual),
+// ESI datasets: compute average-firm lines over the CNMV firms FIRST (so the
+// per-firm average excludes Inversis, which is not part of the CNMV market total),
+// then inject Inversis as the bank-basis reference line.
+const esiAnnual = esiAnnualWithInversis(
+  esiAnnualWithAverages(esiAnnualRaw as unknown as EsiAnnualJSON),
+  annual,
 );
-const esiQuarterly = esiQuarterlyWithAverages(
-  esiQuarterlyWithInversis(esiQuarterlyRaw as unknown as EsiQuarterlyJSON, quarterly),
+const esiQuarterly = esiQuarterlyWithInversis(
+  esiQuarterlyWithAverages(esiQuarterlyRaw as unknown as EsiQuarterlyJSON),
+  quarterly,
 );
 
 type View = "banking" | "esi";

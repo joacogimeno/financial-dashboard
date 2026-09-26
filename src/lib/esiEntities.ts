@@ -190,6 +190,15 @@ const AVG_META = [
   { name: AVG_AV, segment: "AV" as const, kind: "average" as const },
 ];
 
+// Only these fields are meaningful as a "per-firm average" and are the ones the
+// UI plots for the average lines. ROF, its instrument split and commission
+// sub-types are NOT per-firm concepts, so they are deliberately excluded (net
+// fee income and margen bruto also feed the derived no_fee_income line).
+const AVG_FIELDS: (keyof EsiMetrics)[] = [
+  "comisiones_percibidas", "comisiones_netas", "comisiones_satisfechas",
+  "margen_bruto", "gastos_explotacion", "resultado_antes_impuestos",
+];
+
 function averageRecords<T extends EsiAnnualJSON | EsiQuarterlyJSON>(esi: T): T {
   const firms = esi._metadata.entities.filter((e) => e.kind === "firm");
   const data: T["data"] = {} as T["data"];
@@ -205,9 +214,9 @@ function averageRecords<T extends EsiAnnualJSON | EsiQuarterlyJSON>(esi: T): T {
       ).length;
       if (mkt && n > 0) {
         const avg: EsiMetrics = {};
-        for (const [k, v] of Object.entries(mkt)) {
-          if (k === "ytd_prior") continue;
-          (avg as Record<string, number | null>)[k] = typeof v === "number" ? v / n : null;
+        for (const k of AVG_FIELDS) {
+          const v = mkt[k];
+          if (typeof v === "number") (avg as Record<string, number | null>)[k] = v / n;
         }
         merged[avgName] = avg;
       }

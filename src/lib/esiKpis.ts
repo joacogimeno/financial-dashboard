@@ -1,5 +1,5 @@
 // Line-item catalogue + benchmarking maths for the ESI view.
-import type { EsiAnnualJSON, EsiQuarterlyJSON, EsiMetrics, EsiMetricKey } from "./esiTypes";
+import type { EsiAnnualJSON, EsiMetrics, EsiMetricKey } from "./esiTypes";
 
 // Display keys include one derived measure. CNMV does not disclose ROF per firm,
 // only comisiones netas and margen bruto, so "non-fee income" (margen bruto −
@@ -75,29 +75,6 @@ export function annualGrowth(
   return growthPct(cur, prior);
 }
 
-export function qoqGrowth(
-  data: EsiQuarterlyJSON,
-  entity: string,
-  quarter: string,
-  key: DisplayKey,
-): number | null {
-  const idx = data.quarters.indexOf(quarter);
-  if (idx <= 0) return null;
-  return growthPct(val(data.data[quarter]?.[entity], key), val(data.data[data.quarters[idx - 1]]?.[entity], key));
-}
-
-// YoY growth in the quarterly series (same quarter, 4 periods back).
-export function yoyGrowthQ(
-  data: EsiQuarterlyJSON,
-  entity: string,
-  quarter: string,
-  key: DisplayKey,
-): number | null {
-  const idx = data.quarters.indexOf(quarter);
-  if (idx < 4) return null;
-  return growthPct(val(data.data[quarter]?.[entity], key), val(data.data[data.quarters[idx - 4]]?.[entity], key));
-}
-
 export type VerdictLabel = "AHEAD" | "AT PACE" | "BEHIND";
 export interface Verdict {
   label: VerdictLabel;
@@ -134,14 +111,19 @@ export function marketShare(
   return (num / den) * 100;
 }
 
-// Rank of an entity among all firms for a line item (1 = highest).
+// Rank of an entity among firms of ITS OWN segment for a line item (1 = highest).
+// Inversis is compared to the Sociedades de Valores market, so it ranks among SV
+// firms only — not the whole ESI universe (which mixed in Agencias de Valores).
 export function rankInSegment(
   data: EsiAnnualJSON,
   entity: string,
   year: string,
   key: DisplayKey,
 ): { rank: number; total: number } | null {
-  const firms = data._metadata.entities.filter((e) => e.kind === "firm").map((e) => e.name);
+  const seg = data._metadata.entities.find((e) => e.name === entity)?.segment;
+  const firms = data._metadata.entities
+    .filter((e) => e.kind === "firm" && (!seg || e.segment === seg))
+    .map((e) => e.name);
   const scored = firms
     .map((n) => ({ n, v: val(data.data[year]?.[n], key) }))
     .filter((x) => x.v != null) as { n: string; v: number }[];
