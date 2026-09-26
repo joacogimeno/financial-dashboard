@@ -19,6 +19,7 @@ import Treasury from "./tabs/Treasury";
 import QuarterlyView from "./tabs/QuarterlyView";
 import CapitalPayout from "./tabs/CapitalPayout";
 import MarketOverview from "./tabs/esi/MarketOverview";
+import MarketTrends from "./tabs/esi/MarketTrends";
 import ComisionesRofBenchmark from "./tabs/esi/ComisionesRofBenchmark";
 import PeerClientLeague from "./tabs/esi/PeerClientLeague";
 
@@ -38,7 +39,7 @@ const esiQuarterly = esiQuarterlyWithInversis(
 );
 
 type View = "banking" | "esi";
-type EsiTabId = "esi_market" | "esi_benchmark" | "esi_league";
+type EsiTabId = "esi_market" | "esi_trends" | "esi_benchmark" | "esi_league";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "summary", label: "Executive Summary" },
@@ -52,6 +53,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 const ESI_TABS: { id: EsiTabId; label: string }[] = [
   { id: "esi_market", label: "Market Overview" },
+  { id: "esi_trends", label: "Tendencias & Outlook" },
   { id: "esi_benchmark", label: "Comisiones & ROF Benchmark" },
   { id: "esi_league", label: "Peer & Client League" },
 ];
@@ -176,6 +178,7 @@ export default function App() {
         {esi ? (
           <>
             {esiTab === "esi_market" && <MarketOverview annual={esiAnnual} quarterly={esiQuarterly} />}
+            {esiTab === "esi_trends" && <MarketTrends annual={esiAnnual} quarterly={esiQuarterly} />}
             {esiTab === "esi_benchmark" && <ComisionesRofBenchmark annual={esiAnnual} quarterly={esiQuarterly} />}
             {esiTab === "esi_league" && <PeerClientLeague annual={esiAnnual} quarterly={esiQuarterly} />}
           </>
