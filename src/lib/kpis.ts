@@ -84,7 +84,28 @@ export const KPI_DEFS: KPIDef[] = [
     higherIsBetter: true,
     description: "NII / Tangible Assets. Measures interest rate contribution on earning assets.",
   },
-  // ── Efficiency & Profitability ────────────────────────────
+  // ── Costs & efficiency ────────────────────────────────────
+  {
+    key: "admin_expenses",
+    label: "Cost Growth",
+    unit: "%",
+    format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
+    higherIsBetter: false, // rising costs are worse — lower / negative growth ranks best
+    growthRate: true,
+    description: "YoY growth of total operating costs (staff + general + D&A, incl. depreciation & amortisation).",
+    compute: (annual, entity, year) => {
+      const m = annual.data[year]?.[entity];
+      if (!m) return null;
+      const adminC = (m.admin_expenses as number) ?? null;
+      const depC = (m.depreciation as number) ?? null;
+      const adminP = growthBase(annual, entity, year, "admin_expenses");
+      const depP = growthBase(annual, entity, year, "depreciation");
+      if (adminC == null || depC == null || adminP == null || depP == null) return null;
+      const costPrev = adminP + depP;
+      if (costPrev === 0) return null;
+      return ((adminC + depC - costPrev) / Math.abs(costPrev)) * 100;
+    },
+  },
   {
     key: "cost_to_income_pct",
     label: "Cost-to-Income",
@@ -127,6 +148,22 @@ export const KPI_DEFS: KPIDef[] = [
       return revGrowth - costGrowth;
     },
   },
+  // ── Profitability ─────────────────────────────────────────
+  {
+    key: "net_profit",
+    label: "Net Profit Growth",
+    unit: "%",
+    format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
+    higherIsBetter: true,
+    growthRate: true,
+    description: "YoY growth of net profit — the bottom line.",
+    compute: (annual, entity, year) => {
+      const curr = (annual.data[year]?.[entity]?.net_profit as number) ?? null;
+      const prev = growthBase(annual, entity, year, "net_profit");
+      if (curr == null || prev == null || prev === 0) return null;
+      return ((curr - prev) / Math.abs(prev)) * 100;
+    },
+  },
   {
     key: "roe_pct",
     label: "ROE",
@@ -134,6 +171,21 @@ export const KPI_DEFS: KPIDef[] = [
     format: pct,
     higherIsBetter: true,
     description: "Net Profit / Equity. Shareholder return measure.",
+  },
+  {
+    key: "net_profit",
+    label: "Net Profit Margin",
+    unit: "%",
+    format: pct,
+    higherIsBetter: true,
+    description: "Net Profit / Gross Income. Share of revenue that reaches the bottom line — the right profitability lens for a fee-driven business (vs return on assets).",
+    compute: (annual, entity, year) => {
+      const m = annual.data[year]?.[entity];
+      const np = (m?.net_profit as number) ?? null;
+      const gm = (m?.gross_margin as number) ?? null;
+      if (np == null || gm == null || gm === 0) return null;
+      return (np / gm) * 100;
+    },
   },
   // ── Capital ───────────────────────────────────────────────
   {
@@ -143,27 +195,5 @@ export const KPI_DEFS: KPIDef[] = [
     format: pct,
     higherIsBetter: true,
     description: "(Equity − Intangibles) / Total Assets. Strips out goodwill and intangibles.",
-  },
-  // ── Costs ─────────────────────────────────────────────────
-  {
-    key: "admin_expenses",
-    label: "Cost Growth",
-    unit: "%",
-    format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
-    higherIsBetter: false, // rising costs are worse — lower / negative growth ranks best
-    growthRate: true,
-    description: "YoY growth of total operating costs (staff + general + D&A, incl. depreciation & amortisation).",
-    compute: (annual, entity, year) => {
-      const m = annual.data[year]?.[entity];
-      if (!m) return null;
-      const adminC = (m.admin_expenses as number) ?? null;
-      const depC = (m.depreciation as number) ?? null;
-      const adminP = growthBase(annual, entity, year, "admin_expenses");
-      const depP = growthBase(annual, entity, year, "depreciation");
-      if (adminC == null || depC == null || adminP == null || depP == null) return null;
-      const costPrev = adminP + depP;
-      if (costPrev === 0) return null;
-      return ((adminC + depC - costPrev) / Math.abs(costPrev)) * 100;
-    },
   },
 ];
