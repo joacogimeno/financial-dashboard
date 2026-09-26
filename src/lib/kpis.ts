@@ -144,21 +144,26 @@ export const KPI_DEFS: KPIDef[] = [
     higherIsBetter: true,
     description: "(Equity − Intangibles) / Total Assets. Strips out goodwill and intangibles.",
   },
-  // ── Investment ────────────────────────────────────────────
+  // ── Costs ─────────────────────────────────────────────────
   {
-    key: "depreciation",
-    label: "D&A / Total Costs",
+    key: "admin_expenses",
+    label: "Cost Growth",
     unit: "%",
-    format: pct,
-    higherIsBetter: false,
-    description: "D&A as % of total cost base (Admin + D&A). Capital intensity of cost structure.",
+    format: (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`,
+    higherIsBetter: false, // rising costs are worse — lower / negative growth ranks best
+    growthRate: true,
+    description: "YoY growth of total operating costs (staff + general + D&A, incl. depreciation & amortisation).",
     compute: (annual, entity, year) => {
       const m = annual.data[year]?.[entity];
       if (!m) return null;
-      const dep = (m.depreciation as number) ?? null;
-      const admin = (m.admin_expenses as number) ?? null;
-      if (dep == null || admin == null || (admin + dep) === 0) return null;
-      return (dep / (admin + dep)) * 100;
+      const adminC = (m.admin_expenses as number) ?? null;
+      const depC = (m.depreciation as number) ?? null;
+      const adminP = growthBase(annual, entity, year, "admin_expenses");
+      const depP = growthBase(annual, entity, year, "depreciation");
+      if (adminC == null || depC == null || adminP == null || depP == null) return null;
+      const costPrev = adminP + depP;
+      if (costPrev === 0) return null;
+      return ((adminC + depC - costPrev) / Math.abs(costPrev)) * 100;
     },
   },
 ];
