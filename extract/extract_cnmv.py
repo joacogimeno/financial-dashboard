@@ -369,6 +369,218 @@ def diff_records(cur: dict, prev: dict | None) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Capítulo 2 (E02) market-scale metrics + Anexo A1 (EA1) per-firm exchange share.
+# Extra strategic data, merged onto the annual dataset. These live in the newer
+# multi-quarter workbooks, so a couple of period files cover the recent years.
+# ---------------------------------------------------------------------------
+E02_TARGETS = {  # dataset year -> (source period, (calendar year, roman quarter))
+    "2024": ("202512", ("2024", "IV")),
+    "2025": ("202606", ("2025", "IV")),
+    "2026": ("202606", ("2026", "II")),        # H1 2026
+}
+E02_YTD_PRIOR = ("202606", ("2025", "II"))     # H1 2025 for the 2026 YTD entry
+EA1_BY_YEAR = {"2025": "202512", "2026": "202606"}
+_ROMANS = ("I", "II", "III", "IV")
+
+
+def _colmap(df):
+    qr = next((r for r in range(min(8, df.shape[0]))
+               if sum(str(df.iat[r, c]).strip() in _ROMANS for c in range(df.shape[1])) >= 2), None)
+    if qr is None:
+        return {}
+    m, cur = {}, None
+    for c in range(df.shape[1]):
+        yv = str(df.iat[qr - 1, c]).strip()
+        if re.fullmatch(r"(19|20)\d\d", yv):
+            cur = yv
+        qv = str(df.iat[qr, c]).strip()
+        if qv in _ROMANS and cur:
+            m[(cur, qv)] = c
+    return m
+
+
+def _find_e02(period, keyword):
+    """Return the first cached e02_*.xls DataFrame whose title contains keyword."""
+    for path in sorted((RAW_DIR / period).glob("e02_*.xls")):
+        df = read_any(path)
+        title = " ".join(re.sub(r"\s+", " ", str(df.iat[r, 0])).lower()
+                         for r in range(min(4, df.shape[0])) if pd.notna(df.iat[r, 0]))
+        if keyword in title:
+            return df
+    return None
+
+
+def parse_market_scale(period, yq):
+    """{'SV': {...}, 'AV': {...}} of scale metrics for one (year, roman) column."""
+    out = {"SV": {}, "AV": {}}
+    SVN, AVN = "sociedades de valores", "agencias de valores"
+
+    def row_after_section(df, label_prefix):
+        """First col-0 value at label_prefix after each SV/AV section header."""
+        res, cur = {}, None
+        for r in range(df.shape[0]):
+            s = re.sub(r"\s+", " ", str(df.iat[r, 0])).strip().lower()
+            if s.startswith(SVN):
+                cur = "SV"
+            elif s.startswith(AVN):
+                cur = "AV"
+            if cur and s.startswith(label_prefix) and cur not in res:
+                res[cur] = r
+        return res
+
+    def num(df, r, c):
+        if r is None or c is None:
+            return None
+        v = df.iat[r, c]
+        return float(v) if isinstance(v, (int, float)) and not pd.isna(v) else None
+
+    specs = [
+        ("empleados", "número de empleados", "nº de empleados"),
+        ("roe_cnmv", "rentabilidad sobre fondos propios", "media"),
+        ("contratos_gestion", "gestión de carteras. número de contratos", None),  # SV/AV total rows
+    ]
+    for field, title_kw, label in specs:
+        df = _find_e02(period, title_kw)
+        if df is None:
+            continue
+        col = _colmap(df).get(yq)
+        if col is None:
+            continue
+        if field == "contratos_gestion":
+            # rows whose col0 starts with "sociedades de valores"/"agencias de valores"
+            rows = {}
+            for r in range(df.shape[0]):
+                s = re.sub(r"\s+", " ", str(df.iat[r, 0])).strip().lower()
+                if s.startswith(SVN) and "SV" not in rows:
+                    rows["SV"] = r
+                if s.startswith(AVN) and "AV" not in rows:
+                    rows["AV"] = r
+        else:
+            rows = row_after_section(df, label)
+        for seg in ("SV", "AV"):
+            v = num(df, rows.get(seg), col)
+            if v is not None:
+                out[seg][field] = round(v, 2)
+
+    # Volumes (contado): SV renta variable + renta fija (only SV is disclosed by segment)
+    dfv = _find_e02(period, "operaciones al contado")
+    if dfv is not None:
+        col = _colmap(dfv).get(yq)
+        if col is not None:
+            def sv_under(section_prefix):
+                insec = False
+                for r in range(dfv.shape[0]):
+                    s = re.sub(r"\s+", " ", str(dfv.iat[r, 0])).strip().lower()
+                    if s.startswith(section_prefix):
+                        insec = True
+                        continue
+                    if insec and s.startswith(SVN):
+                        return r
+                return None
+            rv, rf = sv_under("renta variable"), sv_under("total renta fija")
+            if rv is not None and num(dfv, rv, col) is not None:
+                out["SV"]["volumen_rv"] = round(num(dfv, rv, col), 1)
+            if rf is not None and num(dfv, rf, col) is not None:
+                out["SV"]["volumen_rf"] = round(num(dfv, rf, col), 1)
+    return out
+
+
+def _norm_name(n):
+    """Normalise a firm name for matching EA1 ↔ Anexo A2 denominaciones."""
+    s = re.sub(r"[.,]", " ", str(n).upper())
+    s = re.sub(r"\bSOCIEDAD DE VALORES\b|\bAGENCIA DE VALORES\b", " ", s)
+    s = re.sub(r"\b(S\s*V|A\s*V|S\s*A\s*U?|S\s*L)\b", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def parse_firm_shares(period):
+    """{normalised_name: {cuota_bolsa_rv, cuota_bolsa_total}} from Anexo A1."""
+    paths = sorted((RAW_DIR / period).glob("ea1_*.xls"))
+    if not paths:
+        return {}
+    df = read_any(paths[0])
+    out = {}
+    for r in range(df.shape[0]):
+        n = df.iat[r, 0]
+        if pd.isna(n):
+            continue
+        name = str(n).strip()
+        if not name[:1].isalpha() or name.upper().startswith("TOTAL"):
+            continue
+        rv, tot = df.iat[r, 1], df.iat[r, 5]
+        out[_norm_name(name)] = {
+            "cuota_bolsa_rv": round(float(rv), 3) if isinstance(rv, (int, float)) and not pd.isna(rv) else None,
+            "cuota_bolsa_total": round(float(tot), 3) if isinstance(tot, (int, float)) and not pd.isna(tot) else None,
+        }
+    return out
+
+
+def exchange_members(period):
+    """Full on-exchange (equity) participation ranking + Inversis's position.
+    The Anexo A1 universe is ALL exchange members — SV/AV firms AND banks /
+    international brokers — so it captures Inversis (as 'Banco Inversis') too."""
+    paths = sorted((RAW_DIR / period).glob("ea1_*.xls"))
+    if not paths:
+        return None
+    df = read_any(paths[0])
+    rows = []
+    for r in range(df.shape[0]):
+        n = df.iat[r, 0]
+        if pd.isna(n):
+            continue
+        name = str(n).strip()
+        up = name.upper()
+        if not name[:1].isalpha() or up.startswith(("TOTAL", "PRO MEMORIA", "PARTICIP", "DENOMINAC")):
+            continue
+        rv = df.iat[r, 1]
+        rvf = float(rv) if isinstance(rv, (int, float)) and not pd.isna(rv) else 0.0
+        if rvf <= 0:
+            continue
+        clean = re.sub(r"\s+", " ", re.sub(r",?\s*(S\.?A\.?U?\.?|S\.?V\.?|A\.?V\.?|PLC|B\.?V\.?|SE|AG)\.?$", "", name.title())).strip()
+        rows.append({"name": clean, "rv": round(rvf, 3), "inversis": "INVERSIS" in up})
+    rows.sort(key=lambda x: -x["rv"])
+    inv = next(({"rv": m["rv"], "rank": i + 1} for i, m in enumerate(rows) if m["inversis"]), None)
+    return {"inversis": inv, "top": [{"name": m["name"], "rv": m["rv"]} for m in rows[:8]], "count": len(rows)}
+
+
+def augment_extras(annual_data, firm_names):
+    """Merge Cap.2 market-scale + Anexo A1 per-firm exchange share onto annual_data.
+    Returns the on-exchange participation ranking to store in metadata."""
+    exchange = {}
+    market = {"SV": MARKET["SV"], "AV": MARKET["AV"]}
+    try:
+        for year, (period, yq) in E02_TARGETS.items():
+            if year not in annual_data or not (RAW_DIR / period).is_dir():
+                continue
+            scale = parse_market_scale(period, yq)
+            for seg, mname in market.items():
+                if mname in annual_data[year]:
+                    annual_data[year][mname].update(scale[seg])
+            if year == "2026":  # attach same-period prior (H1 2025) for like-for-like growth
+                prior = parse_market_scale(E02_YTD_PRIOR[0], E02_YTD_PRIOR[1])
+                for seg, mname in market.items():
+                    tp = annual_data["2026"][mname].get("ytd_prior")
+                    if tp is not None:
+                        tp.update(prior[seg])
+        # Per-firm exchange share (SV/AV firms), matched by normalised name.
+        norm_to_entity = {_norm_name(n): n for n in firm_names}
+        for year, period in EA1_BY_YEAR.items():
+            if year not in annual_data or not (RAW_DIR / period).is_dir():
+                continue
+            for nkey, share in parse_firm_shares(period).items():
+                ent = norm_to_entity.get(nkey)
+                if ent and ent in annual_data[year]:
+                    annual_data[year][ent].update(share)
+            # Full on-exchange ranking (incl. banks/international brokers + Inversis).
+            ranking = exchange_members(period)
+            if ranking:
+                exchange[year] = ranking
+    except Exception as exc:  # extras are optional — never break the core dataset
+        print(f"  (extras skipped: {exc})")
+    return exchange
+
+
 def main():
     agg, ind = {}, {}
     for p in PERIODS:
@@ -401,12 +613,16 @@ def main():
         rec["ytd_prior"] = ytd_prior.get(name)
     annual_data[YTD_YEAR] = ytd_cur
 
+    # Merge Capítulo 2 market-scale + Anexo A1 per-firm exchange share.
+    exchange = augment_extras(annual_data, [e["name"] for e in entities_meta if e["kind"] == "firm"])
+
     annual = {
         "_metadata": {
             "description": "Annual CNMV ESI data (December = full year; current year = H1 YTD). Amounts in EUR millions.",
             "source": source,
             "unit": "EUR millions",
             "entities": entities_meta,
+            "exchange_participation": exchange,
             "years": [int(y) for y in FY] + [int(YTD_YEAR)],
             "ytd": {YTD_YEAR: {"period": YTD_PERIOD, "months": 6, "label": "H1 2026",
                                 "quarters": ["2026-Q1", "2026-Q2"]}},

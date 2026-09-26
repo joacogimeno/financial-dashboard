@@ -765,6 +765,90 @@
     "kind": "firm"
    }
   ],
+  "exchange_participation": {
+   "2025": {
+    "inversis": {
+     "rv": 0.74,
+     "rank": 16
+    },
+    "top": [
+     {
+      "name": "Banco Santander",
+      "rv": 17.14
+     },
+     {
+      "name": "Morgan Stanley Europe Se",
+      "rv": 16.45
+     },
+     {
+      "name": "Bofa Securities Europe",
+      "rv": 13.34
+     },
+     {
+      "name": "Banco De Sabadell",
+      "rv": 9.58
+     },
+     {
+      "name": "Barclays Bank Ireland Plc",
+      "rv": 5.21
+     },
+     {
+      "name": "Goldman Sachs Bank Europe Se",
+      "rv": 4.62
+     },
+     {
+      "name": "Jp. Morgan Ag",
+      "rv": 4.26
+     },
+     {
+      "name": "Cm Capital Markets Bolsa, S.V.",
+      "rv": 3.95
+     }
+    ],
+    "count": 32
+   },
+   "2026": {
+    "inversis": {
+     "rv": 0.62,
+     "rank": 18
+    },
+    "top": [
+     {
+      "name": "Morgan Stanley Europe Se",
+      "rv": 16.21
+     },
+     {
+      "name": "Banco Santander",
+      "rv": 14.73
+     },
+     {
+      "name": "Bofa Securities Europe",
+      "rv": 13.77
+     },
+     {
+      "name": "Banco De Sabadell",
+      "rv": 9.9
+     },
+     {
+      "name": "Barclays Bank Ireland Plc",
+      "rv": 4.89
+     },
+     {
+      "name": "Goldman Sachs Bank Europe Se",
+      "rv": 4.68
+     },
+     {
+      "name": "Tower Research Capital Europe Bv",
+      "rv": 4.58
+     },
+     {
+      "name": "Societe Generale, Sucursal En España",
+      "rv": 4.21
+     }
+    ],
+    "count": 32
+   }
+  },
   "years": [
    2021,
    2022,
@@ -3509,7 +3593,12 @@
     "rof_renta_fija": 27.394,
     "rof_acciones": 7.412,
     "rof_derivados": -1.616,
-    "rof_otros": 1.132
+    "rof_otros": 1.132,
+    "empleados": 1219.0,
+    "roe_cnmv": 11.03,
+    "contratos_gestion": 19162.0,
+    "volumen_rv": 22883.8,
+    "volumen_rf": 793030.3
    },
    "Agencias de Valores": {
     "margen_intereses": 3.963,
@@ -3536,7 +3625,10 @@
     "rof_renta_fija": 0.009,
     "rof_acciones": 1.924,
     "rof_derivados": 0.0,
-    "rof_otros": -0.011
+    "rof_otros": -0.011,
+    "empleados": 1019.0,
+    "roe_cnmv": 24.31,
+    "contratos_gestion": 124996.0
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {
     "fondos_propios": 0.88,
@@ -4438,7 +4530,12 @@
     "rof_renta_fija": 26.882,
     "rof_acciones": 13.687,
     "rof_derivados": 2.373,
-    "rof_otros": -0.001
+    "rof_otros": -0.001,
+    "empleados": 1238.0,
+    "roe_cnmv": 19.72,
+    "contratos_gestion": 24148.0,
+    "volumen_rv": 30798.3,
+    "volumen_rf": 1322174.4
    },
    "Agencias de Valores": {
     "margen_intereses": 1.766,
@@ -4465,7 +4562,10 @@
     "rof_renta_fija": 0.009,
     "rof_acciones": 1.42,
     "rof_derivados": -0.057,
-    "rof_otros": 0.003
+    "rof_otros": 0.003,
+    "empleados": 1087.0,
+    "roe_cnmv": 23.16,
+    "contratos_gestion": 167202.0
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {
     "fondos_propios": 0.895,
@@ -4474,7 +4574,9 @@
     "comisiones_netas": 1.193,
     "margen_bruto": 1.32,
     "gastos_explotacion": 1.678,
-    "resultado_antes_impuestos": -0.376
+    "resultado_antes_impuestos": -0.376,
+    "cuota_bolsa_rv": 0.01,
+    "cuota_bolsa_total": 0.01
    },
    "ALANTRA CAPITAL MARKETS, SV, SA": {
     "fondos_propios": 3.845,
@@ -4492,7 +4594,9 @@
     "comisiones_netas": 7.169,
     "margen_bruto": 7.201,
     "gastos_explotacion": 5.118,
-    "resultado_antes_impuestos": 2.01
+    "resultado_antes_impuestos": 2.01,
+    "cuota_bolsa_rv": 0.01,
+    "cuota_bolsa_total": 0.01
    },
    "ALHAMBRA PARTNERS SV": {
     "fondos_propios": 1.516,
@@ -4519,7 +4623,9 @@
     "comisiones_netas": 0.933,
     "margen_bruto": 13.793,
     "gastos_explotacion": 10.48,
-    "resultado_antes_impuestos": 3.203
+    "resultado_antes_impuestos": 3.203,
+    "cuota_bolsa_rv": 0.26,
+    "cuota_bolsa_total": 0.26
    },
    "BCP SECURITIES, S.V., S.A.": {
     "fondos_propios": 3.392,
@@ -4546,7 +4652,9 @@
     "comisiones_netas": 11.351,
     "margen_bruto": 13.584,
     "gastos_explotacion": 12.053,
-    "resultado_antes_impuestos": 1.703
+    "resultado_antes_impuestos": 1.703,
+    "cuota_bolsa_rv": 0.17,
+    "cuota_bolsa_total": 0.17
    },
    "BP ENERGY SOLUTIONS, SV, SA": {
     "fondos_propios": 191.153,
@@ -4582,7 +4690,9 @@
     "comisiones_netas": 2.291,
     "margen_bruto": 4.712,
     "gastos_explotacion": 4.222,
-    "resultado_antes_impuestos": 0.458
+    "resultado_antes_impuestos": 0.458,
+    "cuota_bolsa_rv": 3.95,
+    "cuota_bolsa_total": 3.93
    },
    "CM CAPITAL MARKETS BROKERAGE, S.V.": {
     "fondos_propios": 8.039,
@@ -4618,7 +4728,9 @@
     "comisiones_netas": 12.441,
     "margen_bruto": 19.09,
     "gastos_explotacion": 11.562,
-    "resultado_antes_impuestos": 7.191
+    "resultado_antes_impuestos": 7.191,
+    "cuota_bolsa_rv": 0.0,
+    "cuota_bolsa_total": 0.0
    },
    "GESTION DE PATRIMONIOS MOBILIARIOS, S.V.": {
     "fondos_propios": 0.763,
@@ -4636,7 +4748,9 @@
     "comisiones_netas": 15.372,
     "margen_bruto": 18.817,
     "gastos_explotacion": 16.286,
-    "resultado_antes_impuestos": 1.189
+    "resultado_antes_impuestos": 1.189,
+    "cuota_bolsa_rv": 0.42,
+    "cuota_bolsa_total": 0.45
    },
    "IBROKER GLOBAL MARKETS, S.V., S.A.": {
     "fondos_propios": 14.751,
@@ -4654,7 +4768,9 @@
     "comisiones_netas": 3.486,
     "margen_bruto": 6.292,
     "gastos_explotacion": 6.776,
-    "resultado_antes_impuestos": -0.526
+    "resultado_antes_impuestos": -0.526,
+    "cuota_bolsa_rv": 0.19,
+    "cuota_bolsa_total": 0.19
    },
    "INVERSEGUROS S.V.": {
     "fondos_propios": 3.226,
@@ -4672,7 +4788,9 @@
     "comisiones_netas": 11.814,
     "margen_bruto": 16.197,
     "gastos_explotacion": 12.501,
-    "resultado_antes_impuestos": 3.446
+    "resultado_antes_impuestos": 3.446,
+    "cuota_bolsa_rv": 0.09,
+    "cuota_bolsa_total": 0.09
    },
    "KUTXABANK INVESTMENT, S.V., S.A.": {
     "fondos_propios": 25.92,
@@ -4681,7 +4799,9 @@
     "comisiones_netas": 8.705,
     "margen_bruto": 12.188,
     "gastos_explotacion": 7.837,
-    "resultado_antes_impuestos": 3.785
+    "resultado_antes_impuestos": 3.785,
+    "cuota_bolsa_rv": 0.31,
+    "cuota_bolsa_total": 0.31
    },
    "LINK SECURITIES, S.V.": {
     "fondos_propios": 3.26,
@@ -4690,7 +4810,9 @@
     "comisiones_netas": 1.745,
     "margen_bruto": 1.906,
     "gastos_explotacion": 2.139,
-    "resultado_antes_impuestos": -0.202
+    "resultado_antes_impuestos": -0.202,
+    "cuota_bolsa_rv": 0.08,
+    "cuota_bolsa_total": 0.07
    },
    "MAPFRE INVERSION S.V.": {
     "fondos_propios": 76.295,
@@ -4762,7 +4884,9 @@
     "comisiones_netas": 6.653,
     "margen_bruto": 6.767,
     "gastos_explotacion": 6.514,
-    "resultado_antes_impuestos": 0.227
+    "resultado_antes_impuestos": 0.227,
+    "cuota_bolsa_rv": 0.0,
+    "cuota_bolsa_total": 0.0
    },
    "STRAT FX SOCIEDAD DE VALORES, S.A.": {
     "fondos_propios": 10.427,
@@ -5420,8 +5544,18 @@
      "rof_renta_fija": 14.929,
      "rof_acciones": 7.836,
      "rof_derivados": 1.869,
-     "rof_otros": 1.155
-    }
+     "rof_otros": 1.155,
+     "empleados": 1266.0,
+     "roe_cnmv": 12.57,
+     "contratos_gestion": 23937.0,
+     "volumen_rv": 23425.5,
+     "volumen_rf": 1155693.9
+    },
+    "empleados": 1267.0,
+    "roe_cnmv": 21.58,
+    "contratos_gestion": 29348.0,
+    "volumen_rv": 30023.0,
+    "volumen_rf": 1215572.7
    },
    "Agencias de Valores": {
     "margen_intereses": 1.03,
@@ -5474,8 +5608,14 @@
      "rof_renta_fija": 0.005,
      "rof_acciones": 0.614,
      "rof_derivados": -0.004,
-     "rof_otros": -0.004
-    }
+     "rof_otros": -0.004,
+     "empleados": 1093.0,
+     "roe_cnmv": 16.61,
+     "contratos_gestion": 144283.0
+    },
+    "empleados": 1144.0,
+    "roe_cnmv": 21.51,
+    "contratos_gestion": 198058.0
    },
    "ACTIVOTRADE VALORES, S.V., S.A.": {
     "fondos_propios": 1.111,
@@ -5493,7 +5633,9 @@
      "margen_bruto": 0.6,
      "gastos_explotacion": 0.713,
      "resultado_antes_impuestos": -0.12
-    }
+    },
+    "cuota_bolsa_rv": 0.01,
+    "cuota_bolsa_total": 0.01
    },
    "ALANTRA CAPITAL MARKETS, SV, SA": {
     "fondos_propios": 3.824,
@@ -5529,7 +5671,9 @@
      "margen_bruto": 3.745,
      "gastos_explotacion": 2.571,
      "resultado_antes_impuestos": 1.163
-    }
+    },
+    "cuota_bolsa_rv": 0.03,
+    "cuota_bolsa_total": 0.03
    },
    "ALHAMBRA PARTNERS SV": {
     "fondos_propios": 1.073,
@@ -5583,7 +5727,9 @@
      "margen_bruto": 7.874,
      "gastos_explotacion": 5.323,
      "resultado_antes_impuestos": 2.497
-    }
+    },
+    "cuota_bolsa_rv": 0.24,
+    "cuota_bolsa_total": 0.24
    },
    "BCP SECURITIES, S.V., S.A.": {
     "fondos_propios": 2.622,
@@ -5637,7 +5783,9 @@
      "margen_bruto": 8.197,
      "gastos_explotacion": 7.066,
      "resultado_antes_impuestos": 1.065
-    }
+    },
+    "cuota_bolsa_rv": 0.14,
+    "cuota_bolsa_total": 0.14
    },
    "BP ENERGY SOLUTIONS, SV, SA": {
     "fondos_propios": 192.075,
@@ -5701,7 +5849,9 @@
      "margen_bruto": 2.623,
      "gastos_explotacion": 2.199,
      "resultado_antes_impuestos": 0.404
-    }
+    },
+    "cuota_bolsa_rv": 2.8,
+    "cuota_bolsa_total": 2.77
    },
    "CM CAPITAL MARKETS BROKERAGE, S.V.": {
     "fondos_propios": 5.964,
@@ -5809,7 +5959,9 @@
      "margen_bruto": 9.065,
      "gastos_explotacion": 8.04,
      "resultado_antes_impuestos": 0.532
-    }
+    },
+    "cuota_bolsa_rv": 0.27,
+    "cuota_bolsa_total": 0.29
    },
    "IBROKER GLOBAL MARKETS, S.V., S.A.": {
     "fondos_propios": 15.422,
@@ -5845,7 +5997,9 @@
      "margen_bruto": 3.269,
      "gastos_explotacion": 3.194,
      "resultado_antes_impuestos": 0.051
-    }
+    },
+    "cuota_bolsa_rv": 0.27,
+    "cuota_bolsa_total": 0.26
    },
    "INVERSEGUROS S.V.": {
     "fondos_propios": 3.683,
@@ -5881,7 +6035,9 @@
      "margen_bruto": 6.745,
      "gastos_explotacion": 5.971,
      "resultado_antes_impuestos": 0.648
-    }
+    },
+    "cuota_bolsa_rv": 0.12,
+    "cuota_bolsa_total": 0.12
    },
    "KUTXABANK INVESTMENT, S.V., S.A.": {
     "fondos_propios": 25.113,
@@ -5899,7 +6055,9 @@
      "margen_bruto": 5.176,
      "gastos_explotacion": 3.619,
      "resultado_antes_impuestos": 1.436
-    }
+    },
+    "cuota_bolsa_rv": 0.2,
+    "cuota_bolsa_total": 0.2
    },
    "LINK SECURITIES, S.V.": {
     "fondos_propios": 3.277,
@@ -5917,7 +6075,9 @@
      "margen_bruto": 0.978,
      "gastos_explotacion": 0.968,
      "resultado_antes_impuestos": 0.0
-    }
+    },
+    "cuota_bolsa_rv": 0.06,
+    "cuota_bolsa_total": 0.06
    },
    "MAPFRE INVERSION S.V.": {
     "fondos_propios": 83.18,
@@ -6043,7 +6203,9 @@
      "margen_bruto": 4.737,
      "gastos_explotacion": 3.335,
      "resultado_antes_impuestos": 1.405
-    }
+    },
+    "cuota_bolsa_rv": 0.0,
+    "cuota_bolsa_total": 0.0
    },
    "STRAT FX SOCIEDAD DE VALORES, S.A.": {
     "fondos_propios": 11.862,

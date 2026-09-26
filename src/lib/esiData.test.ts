@@ -41,6 +41,27 @@ describe("esi_annual.json integrity", () => {
   });
 });
 
+describe("market scale (Cap.2) + exchange participation (Anexo A1)", () => {
+  it("SV market carries scale metrics for recent years", () => {
+    for (const yr of ["2025", "2026"]) {
+      const sv = A.data[yr]["Sociedades de Valores"] as Record<string, unknown>;
+      for (const k of ["empleados", "roe_cnmv", "volumen_rv", "volumen_rf", "contratos_gestion"]) {
+        expect(num(sv[k]), `${yr}.${k}`).not.toBeNull();
+        expect(num(sv[k])!, `${yr}.${k}`).toBeGreaterThan(0);
+      }
+    }
+  });
+  it("exchange participation includes Inversis with a plausible rank", () => {
+    const ex = A._metadata.exchange_participation?.["2026"];
+    expect(ex).toBeTruthy();
+    expect(ex!.inversis).toBeTruthy();
+    expect(ex!.inversis!.rv).toBeGreaterThan(0);
+    expect(ex!.inversis!.rank).toBeGreaterThan(0);
+    expect(ex!.inversis!.rank).toBeLessThanOrEqual(ex!.count);
+    expect(ex!.top.length).toBeGreaterThan(0);
+  });
+});
+
 describe("esi_quarterly.json reconciles to annual", () => {
   it("FY = Σ of the 4 standalone quarters (market comisiones netas & margen bruto)", () => {
     for (const mkt of MARKETS) {

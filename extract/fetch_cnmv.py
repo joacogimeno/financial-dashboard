@@ -52,10 +52,18 @@ def _excel_links(html: str) -> list[str]:
     return [u for u in links if u.endswith("F7mr05")]
 
 
-def fetch_period(period: str) -> None:
+# Capítulo 2 (market scale) + Anexo A1 (exchange share) live in the newer
+# multi-quarter workbooks, so only a few recent periods are needed for the extras.
+EXTRAS_PERIODS = ["202512", "202606", "202506"]
+
+
+def fetch_period(period: str, extras: bool = False) -> None:
     pdir = RAW_DIR / period
     pdir.mkdir(parents=True, exist_ok=True)
-    for tag, code in (("pyl", "E01"), ("ind", "EA2")):
+    codes = [("pyl", "E01"), ("ind", "EA2")]
+    if extras:
+        codes += [("e02", "E02"), ("ea1", "EA1")]
+    for tag, code in codes:
         manifest = pdir / f"{tag}_links.txt"
         if manifest.exists() and manifest.read_text().strip():
             links = manifest.read_text().split()
@@ -71,9 +79,15 @@ def fetch_period(period: str) -> None:
 
 
 def main():
-    for p in sys.argv[1:] or PERIODS:
+    periods = sys.argv[1:] or PERIODS
+    for p in periods:
         print(f"[{p}]")
-        fetch_period(p)
+        fetch_period(p, extras=p in EXTRAS_PERIODS)
+    # ensure extras are fetched even if not in the default period list
+    for p in EXTRAS_PERIODS:
+        if p not in periods:
+            print(f"[{p}] (extras)")
+            fetch_period(p, extras=True)
     print("done")
 
 

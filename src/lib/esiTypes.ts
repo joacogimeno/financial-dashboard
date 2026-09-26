@@ -44,6 +44,14 @@ export interface EsiMetrics {
   // Balance snapshot (individual firms)
   fondos_propios?: number | null;
   activos_totales?: number | null;
+  // Cap.2 market-scale (aggregates) + Anexo A1 per-firm exchange share
+  empleados?: number | null;                 // headcount (market)
+  roe_cnmv?: number | null;                  // official CNMV ROE, pre-tax (market)
+  contratos_gestion?: number | null;         // discretionary-mgmt contracts (market)
+  volumen_rv?: number | null;                // equity intermediation volume €M (market)
+  volumen_rf?: number | null;                // fixed-income intermediation volume €M (market)
+  cuota_bolsa_rv?: number | null;            // on-exchange equity share % (firm)
+  cuota_bolsa_total?: number | null;         // on-exchange total share % (firm)
   // Same-period prior-year snapshot, present only on a YTD year's entry.
   ytd_prior?: EsiMetrics | null;
 }
@@ -56,6 +64,12 @@ export interface EsiEntityMeta {
   kind: EsiKind;
 }
 
+export interface ExchangeRanking {
+  inversis: { rv: number; rank: number } | null;
+  top: { name: string; rv: number }[];
+  count: number;
+}
+
 export interface EsiAnnualJSON {
   _metadata: {
     description: string;
@@ -64,6 +78,7 @@ export interface EsiAnnualJSON {
     entities: EsiEntityMeta[];
     years: number[];
     ytd?: Record<string, YtdMeta>;
+    exchange_participation?: Record<string, ExchangeRanking>;
   };
   data: Record<string, Record<string, EsiMetrics>>;
 }

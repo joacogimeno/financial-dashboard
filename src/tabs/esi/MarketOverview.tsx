@@ -150,6 +150,9 @@ export default function MarketOverview({ annual, quarterly }: Props) {
         </div>
       </div>
 
+      {/* Market scale & activity (Cap.2) + on-exchange execution (Anexo A1) */}
+      <ScaleActivity annual={annual} year={year} />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <EsiTrendChart data={quarterly} metric="comisiones_netas"
           title="Comisiones netas — quarterly (€M)"
@@ -160,6 +163,83 @@ export default function MarketOverview({ annual, quarterly }: Props) {
       </div>
 
       <p className="text-[11px] text-slate-500 leading-relaxed">{INVERSIS_BASIS_NOTE}</p>
+    </div>
+  );
+}
+
+function ScaleActivity({ annual, year }: { annual: EsiAnnualJSON; year: string }) {
+  const sv = (k: DisplayKey) => val(annual.data[year]?.[MARKET_SV], k);
+  const g = (k: DisplayKey) => annualGrowth(annual, MARKET_SV, year, k);
+  const months = annual._metadata.ytd?.[year]?.months ?? 12;
+  const ytd = annual._metadata.ytd?.[year] != null;
+  const perEmp = (k: DisplayKey) => {
+    const v = sv(k), emp = sv("empleados");
+    return v != null && emp ? ((v * 12) / months / emp) * 1000 : null; // €k/employee, annualised
+  };
+  const emp = sv("empleados");
+  const contratos = sv("contratos_gestion");
+  const fmtBig = (v: number) => (v >= 1e6 ? `€${(v / 1e6).toFixed(2)}tn` : v >= 1000 ? `€${(v / 1000).toFixed(0)}bn` : `€${v.toFixed(0)}M`);
+  const exchange = annual._metadata.exchange_participation?.[year];
+  const cards = [
+    { label: "Volumen bolsa (RV)", v: sv("volumen_rv"), fmt: fmtBig, growth: g("volumen_rv"), sub: "intermediación equity" },
+    { label: "Volumen renta fija", v: sv("volumen_rf"), fmt: fmtBig, growth: g("volumen_rf"), sub: "repo / OTC" },
+    { label: "Gestión de carteras", v: contratos, fmt: (x: number) => x.toLocaleString("es"), growth: g("contratos_gestion"), sub: "contratos" },
+    { label: "ROE (CNMV)", v: sv("roe_cnmv"), fmt: fmtPctPlain, growth: null as number | null, sub: "antes de impuestos" },
+  ];
+  return (
+    <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
+      <h3 className="text-sm font-semibold text-slate-300 mb-1">Market scale &amp; activity — Sociedades de Valores</h3>
+      <p className="text-[11px] text-slate-500 mb-4">
+        Volumes intermediated, managed portfolios, headcount productivity and official ROE (CNMV Cap.2 / Anexo A1).
+        {ytd ? " Volumes are H1; productivity annualised." : ""}
+      </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {cards.map((c) => (
+          <div key={c.label}>
+            <p className="text-xs text-slate-400 uppercase tracking-wider">{c.label}</p>
+            <p className="text-xl font-bold text-white mt-1">{c.v != null ? c.fmt(c.v) : "—"}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              {c.growth != null && <span className="text-xs" style={{ color: c.growth >= 0 ? "#34d399" : "#f87171" }}>{fmtPct(c.growth)}</span>}
+              <span className="text-[10px] text-slate-500">{c.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-slate-700/50 pt-4">
+        <div>
+          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Productividad del mercado</p>
+          <p className="text-sm text-slate-300">
+            {emp != null ? `${emp.toLocaleString("es")} empleados` : "—"}
+            {perEmp("comisiones_netas") != null && <> · <span className="text-white font-semibold">€{perEmp("comisiones_netas")!.toFixed(0)}k</span> comisiones netas / empleado</>}
+            {perEmp("margen_bruto") != null && <> · €{perEmp("margen_bruto")!.toFixed(0)}k margen bruto / empleado</>}
+          </p>
+        </div>
+        {exchange && (
+          <div>
+            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Cuota en contratación bursátil (equity)</p>
+            {exchange.inversis && (
+              <p className="text-sm mb-2">
+                <span className="text-blue-300 font-semibold">Inversis {fmtPctPlain(exchange.inversis.rv)}</span>
+                <span className="text-slate-500"> · puesto #{exchange.inversis.rank} de {exchange.count} miembros</span>
+              </p>
+            )}
+            <div className="space-y-1">
+              {exchange.top.slice(0, 5).map((m) => (
+                <div key={m.name} className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400 w-36 truncate">{m.name}</span>
+                  <div className="flex-1 h-2.5 bg-slate-800 rounded overflow-hidden">
+                    <div className="h-full rounded" style={{ width: `${Math.min(100, (m.rv / (exchange.top[0]?.rv || 1)) * 100)}%`, background: "#64748b" }} />
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400 w-10 text-right">{m.rv}%</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2">
+              Universo = miembros del mercado bursátil (incluye bancos y brókeres internacionales). Inversis es un actor pequeño en ejecución directa.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import type { EsiAnnualJSON, EsiQuarterlyJSON, EsiTag } from "../../lib/esiTypes";
 import { esiTag, esiDisplayName, esiColor, AVG_SV, AVG_AV } from "../../lib/esiEntities";
-import { val, annualGrowth, fmtM, fmtM2, fmtPct, type DisplayKey } from "../../lib/esiKpis";
+import { val, annualGrowth, fmtM, fmtM2, fmtPct, fmtPctPlain, type DisplayKey } from "../../lib/esiKpis";
 import { POSITIVE_COLOR, NEGATIVE_COLOR } from "../../lib/colors";
 import EsiTrendChart from "./EsiTrendChart";
 
@@ -14,6 +14,7 @@ const COLUMNS: { key: DisplayKey; label: string; growthKey?: SortKey; fmt: (v: n
   { key: "margen_bruto", label: "Margen bruto", fmt: fmtM },
   { key: "gastos_explotacion", label: "Gastos expl.", fmt: fmtM },
   { key: "resultado_antes_impuestos", label: "Rtdo. a.i.", fmt: fmtM },
+  { key: "cuota_bolsa_rv", label: "Cuota bolsa", fmt: fmtPctPlain },
 ];
 
 const FILTERS: { id: Filter; label: string }[] = [
