@@ -33,8 +33,18 @@ const esiAnnual = esiAnnualWithInversis(
   esiAnnualWithAverages(esiAnnualRaw as unknown as EsiAnnualJSON),
   annual,
 );
+// Drop 2021-Q4 from the ESI view: Inversis's bank-basis figure for it is a full-year
+// value (no Sept-2021 cumulative existed to difference into a standalone quarter), so
+// plotting it distorts the protagonist line — badly in indexed mode, where it becomes
+// the =100 base. Every series then starts at 2022-Q1 as a clean standalone quarter.
+function withoutQuarter(q: EsiQuarterlyJSON, drop: string): EsiQuarterlyJSON {
+  const data = { ...q.data };
+  delete (data as Record<string, unknown>)[drop];
+  return { ...q, quarters: q.quarters.filter((x) => x !== drop), data };
+}
+
 const esiQuarterly = esiQuarterlyWithInversis(
-  esiQuarterlyWithAverages(esiQuarterlyRaw as unknown as EsiQuarterlyJSON),
+  esiQuarterlyWithAverages(withoutQuarter(esiQuarterlyRaw as unknown as EsiQuarterlyJSON, "2021-Q4")),
   quarterly,
 );
 

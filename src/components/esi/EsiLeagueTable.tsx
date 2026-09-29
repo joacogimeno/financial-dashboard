@@ -1,12 +1,12 @@
 import { Fragment, useMemo, useState } from "react";
 import type { EsiAnnualJSON, EsiQuarterlyJSON, EsiTag } from "../../lib/esiTypes";
 import { esiTag, esiDisplayName, esiColor, AVG_SV, AVG_AV } from "../../lib/esiEntities";
-import { val, annualGrowth, fmtM, fmtM2, fmtPct, fmtPctPlain, type DisplayKey } from "../../lib/esiKpis";
+import { val, annualGrowth, feeRetention, fmtM, fmtM2, fmtPct, fmtPctPlain, type DisplayKey } from "../../lib/esiKpis";
 import { POSITIVE_COLOR, NEGATIVE_COLOR } from "../../lib/colors";
 import EsiTrendChart from "./EsiTrendChart";
 
 type Filter = "peers" | "all" | "clients" | "SV" | "AV";
-type SortKey = DisplayKey | "netasG" | "nofeeG";
+type SortKey = DisplayKey | "netasG" | "nofeeG" | "retention";
 
 const COLUMNS: { key: DisplayKey; label: string; growthKey?: SortKey; fmt: (v: number) => string }[] = [
   { key: "comisiones_netas", label: "Com. netas", growthKey: "netasG", fmt: fmtM },
@@ -62,10 +62,12 @@ export default function EsiLeagueTable({ data, quarterly, year }: Props) {
       seg: segOf(n),
       netasG: annualGrowth(data, n, year, "comisiones_netas"),
       nofeeG: annualGrowth(data, n, year, "no_fee_income"),
+      retention: feeRetention(data.data[year]?.[n]),
       vals: Object.fromEntries(COLUMNS.map((c) => [c.key, val(data.data[year]?.[n], c.key)])) as Record<DisplayKey, number | null>,
     }));
     const pick = (r: (typeof built)[number]) =>
-      sortKey === "netasG" ? r.netasG : sortKey === "nofeeG" ? r.nofeeG : r.vals[sortKey as DisplayKey];
+      sortKey === "netasG" ? r.netasG : sortKey === "nofeeG" ? r.nofeeG
+        : sortKey === "retention" ? r.retention : r.vals[sortKey as DisplayKey];
     built.sort((a, b) => {
       const av = pick(a), bv = pick(b);
       if (av == null) return 1;
@@ -118,6 +120,10 @@ export default function EsiLeagueTable({ data, quarterly, year }: Props) {
                   )}
                 </Fragment>
               ))}
+              <th className="text-right px-4 py-2.5 font-medium cursor-pointer hover:text-slate-200 whitespace-nowrap"
+                onClick={() => clickSort("retention")} title="Comisiones netas ÷ percibidas — cuánto del bruto retiene la firma tras retrocesiones">
+                % net/bruto{arrow("retention")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -153,10 +159,13 @@ export default function EsiLeagueTable({ data, quarterly, year }: Props) {
                         )}
                       </Fragment>
                     ))}
+                    <td className={`text-right px-4 py-2.5 font-mono ${hi ? "text-blue-200" : "text-slate-300"}`}>
+                      {r.retention != null ? fmtPctPlain(r.retention) : <span className="text-slate-600">—</span>}
+                    </td>
                   </tr>
                   {isOpen && (
                     <tr className="bg-slate-900/40 border-b border-slate-700/40">
-                      <td colSpan={1 + COLUMNS.length + COLUMNS.filter((c) => c.growthKey).length} className="px-4 py-4">
+                      <td colSpan={2 + COLUMNS.length + COLUMNS.filter((c) => c.growthKey).length} className="px-4 py-4">
                         <p className="text-xs text-slate-400 mb-3">
                           {esiDisplayName(r.name)} — quarterly evolution vs the average {r.seg === "AV" ? "Agencia" : "Sociedad"} de Valores firm.
                           "Ingresos no-comisiones" = margen bruto − comisiones netas (ROF + intereses + FX + otros); CNMV does not disclose ROF per firm.
@@ -182,6 +191,9 @@ export default function EsiLeagueTable({ data, quarterly, year }: Props) {
         "Ingresos no-com. (ROF+)" = margen bruto − comisiones netas. For the CNMV firms this is mostly trading/ROF;
         for the <span className="text-blue-300">Inversis</span> row (bank-basis) it is dominated by net interest income,
         so that single cell is not directly comparable to the securities firms.
+        <br />"% net/bruto" = comisiones netas ÷ percibidas: how much of gross fees the firm keeps after retrocessions.
+        A low ratio flags a distribution-heavy model (fees largely passed through to introducers); a high ratio, an own-client/own-product model.
+        It is the only per-firm window into commission economics the CNMV discloses (no per-firm sub-type split exists).
       </p>
     </div>
   );

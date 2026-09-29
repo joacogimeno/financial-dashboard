@@ -52,6 +52,19 @@ export function val(rec: EsiMetrics | undefined, key: DisplayKey): number | null
   return typeof v === "number" ? v : null;
 }
 
+// Net-to-gross commission ratio (%): how much of the gross fees a firm keeps after
+// paying away retrocessions / introducer fees. A low ratio flags a
+// distribution-heavy model (fees largely passed through); a high ratio flags an
+// own-client / own-product model. The one per-firm window into commission economics
+// that the CNMV Anexo A.2 actually discloses (it has no per-firm sub-type split).
+export function feeRetention(rec: EsiMetrics | undefined): number | null {
+  const gross = rec?.comisiones_percibidas;
+  const net = rec?.comisiones_netas;
+  return typeof gross === "number" && typeof net === "number" && gross !== 0
+    ? (net / gross) * 100
+    : null;
+}
+
 function growthPct(cur: number | null, prior: number | null): number | null {
   if (cur == null || prior == null || prior === 0) return null;
   return ((cur - prior) / Math.abs(prior)) * 100;
@@ -111,18 +124,20 @@ export function marketShare(
   return (num / den) * 100;
 }
 
-// Rank of an entity among firms of ITS OWN segment for a line item (1 = highest).
-// Inversis is compared to the Sociedades de Valores market, so it ranks among SV
-// firms only — not the whole ESI universe (which mixed in Agencias de Valores).
+// Rank of an entity among firms of a segment for a line item (1 = highest).
+// Defaults to the entity's own segment; pass `segmentOverride` to rank it against
+// another segment (e.g. rank agency-like Inversis among Agencias de Valores). The
+// entity itself is always included even if its metadata segment differs.
 export function rankInSegment(
   data: EsiAnnualJSON,
   entity: string,
   year: string,
   key: DisplayKey,
+  segmentOverride?: "SV" | "AV",
 ): { rank: number; total: number } | null {
-  const seg = data._metadata.entities.find((e) => e.name === entity)?.segment;
+  const seg = segmentOverride ?? data._metadata.entities.find((e) => e.name === entity)?.segment;
   const firms = data._metadata.entities
-    .filter((e) => e.kind === "firm" && (!seg || e.segment === seg))
+    .filter((e) => e.kind === "firm" && (!seg || e.segment === seg || e.name === entity))
     .map((e) => e.name);
   const scored = firms
     .map((n) => ({ n, v: val(data.data[year]?.[n], key) }))

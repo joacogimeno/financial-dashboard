@@ -21,63 +21,88 @@ interface Props {
 
 export default function MarketTrends({ annual, quarterly }: Props) {
   // Fee-pool share shift (% of comisiones percibidas), first vs last comparable year.
-  const share = (year: string, key: DisplayKey) => {
-    const num = val(annual.data[year]?.[MARKET_SV], key);
-    const den = val(annual.data[year]?.[MARKET_SV], "comisiones_percibidas");
+  const share = (market: string, year: string, key: DisplayKey) => {
+    const num = val(annual.data[year]?.[market], key);
+    const den = val(annual.data[year]?.[market], "comisiones_percibidas");
     return num != null && den ? (num / den) * 100 : null;
   };
   const y0 = COMP_YEARS[0], y1 = COMP_YEARS[COMP_YEARS.length - 1];
-  const shifts = POOLS.map((p) => {
-    const s0 = share(y0, p.key), s1 = share(y1, p.key);
+  const shiftRow = (market: string) => POOLS.map((p) => {
+    const s0 = share(market, y0, p.key), s1 = share(market, y1, p.key);
     return { ...p, s0, s1, delta: s0 != null && s1 != null ? s1 - s0 : null };
   });
+  const shiftsSV = shiftRow(MARKET_SV);
+  const shiftsAV = shiftRow(MARKET_AV);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-white">Tendencias y dirección del mercado</h2>
         <p className="text-sm text-slate-400 mt-1">
-          Vista multi-año de dónde viene y hacia dónde va el mercado de Sociedades de Valores — sin comparar año a año
+          Vista multi-año de dónde viene y hacia dónde va el mercado de Sociedades y Agencias de Valores — sin comparar año a año
           manualmente. Contrastada con el contexto macro-normativo y sectorial (ver «Dirección de viaje»).
         </p>
       </div>
 
-      {/* 1) Fee-pool composition over time */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <EsiStackedArea
-            data={annual} entity={MARKET_SV} series={POOLS} years={COMP_YEARS}
-            title="¿Dónde se generan las comisiones? — grupos de comisión del mercado SV (€M)"
-            formatValue={(v) => `${v.toFixed(0)}`} height={300}
-          />
-        </div>
-        <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
-          <h3 className="text-sm font-semibold text-slate-300 mb-1">Cambio estructural</h3>
-          <p className="text-[11px] text-slate-500 mb-3">Peso sobre comisiones percibidas, {y0}→{y1}.</p>
-          <div className="space-y-2.5">
-            {shifts.map((s) => (
-              <div key={s.label} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-                  <span className="text-slate-300">{s.label}</span>
-                </span>
-                <span className="font-mono text-xs">
-                  <span className="text-slate-500">{s.s0 != null ? fmtPctPlain(s.s0) : "—"}→{s.s1 != null ? fmtPctPlain(s.s1) : "—"}</span>
-                  {s.delta != null && (
-                    <span className="ml-2 font-semibold" style={{ color: s.delta >= 0 ? "#34d399" : "#f87171" }}>
-                      {s.delta >= 0 ? "+" : ""}{s.delta.toFixed(1)}pp
-                    </span>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">
-            El mercado se desplaza hacia <span className="text-slate-300">gestión de carteras y asesoramiento</span>
-            {" "}(modelos de pago por consejo), mientras la <span className="text-slate-300">custodia</span> pierde peso
-            (comoditización). Ejecución y distribución de IIC siguen siendo los pools dominantes.
-          </p>
-        </div>
+      {/* 1) Fee-pool composition over time — SV vs AV side by side */}
+      <h3 className="text-sm font-semibold text-slate-300">¿Dónde se generan las comisiones y cómo evoluciona? — SV vs AV ({y0}–{y1})</h3>
+      <p className="text-[11px] text-slate-500 -mt-1">
+        Comisiones <span className="text-slate-300">percibidas (brutas)</span> por tipo, €M. Antes de restar comisiones satisfechas (retrocesiones).
+      </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EsiStackedArea
+          data={annual} entity={MARKET_SV} series={POOLS} years={COMP_YEARS}
+          title="Sociedades de Valores — comisión percibida por tipo (€M)"
+          formatValue={(v) => `${v.toFixed(0)}`} height={280}
+        />
+        <EsiStackedArea
+          data={annual} entity={MARKET_AV} series={POOLS} years={COMP_YEARS}
+          title="Agencias de Valores — comisión percibida por tipo (€M)"
+          formatValue={(v) => `${v.toFixed(0)}`} height={280}
+        />
+      </div>
+
+      {/* Structural-shift comparison SV vs AV */}
+      <div className="bg-slate-800/30 rounded-xl border border-slate-700/50 p-5">
+        <h3 className="text-sm font-semibold text-slate-300 mb-1">Cambio estructural del mix — SV vs AV</h3>
+        <p className="text-[11px] text-slate-500 mb-3">Peso de cada grupo sobre comisiones percibidas, {y0}→{y1} (puntos porcentuales).</p>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs text-slate-400 uppercase tracking-wider">
+              <th className="text-left py-2 font-medium">Grupo de comisión</th>
+              <th className="text-right py-2 font-medium">SV {y0}→{y1}</th>
+              <th className="text-right py-2 font-medium">Δ SV</th>
+              <th className="text-right py-2 font-medium">AV {y0}→{y1}</th>
+              <th className="text-right py-2 font-medium">Δ AV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {POOLS.map((p, i) => {
+              const sv = shiftsSV[i], av = shiftsAV[i];
+              const deltaCell = (d: number | null) => d == null ? <span className="text-slate-600">—</span>
+                : <span className="font-semibold" style={{ color: d >= 0 ? "#34d399" : "#f87171" }}>{d >= 0 ? "+" : ""}{d.toFixed(1)}pp</span>;
+              const rangeCell = (s: { s0: number | null; s1: number | null }) =>
+                <span className="text-slate-500 font-mono text-xs">{s.s0 != null ? fmtPctPlain(s.s0) : "—"}→{s.s1 != null ? fmtPctPlain(s.s1) : "—"}</span>;
+              return (
+                <tr key={p.key} className="border-t border-slate-700/30">
+                  <td className="py-2 text-slate-300 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />{p.label}
+                  </td>
+                  <td className="py-2 text-right">{rangeCell(sv)}</td>
+                  <td className="py-2 text-right">{deltaCell(sv.delta)}</td>
+                  <td className="py-2 text-right">{rangeCell(av)}</td>
+                  <td className="py-2 text-right">{deltaCell(av.delta)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
+          Ambos segmentos migran hacia <span className="text-slate-300">gestión de carteras y asesoramiento</span> (pago por consejo)
+          y la <span className="text-slate-300">custodia</span> pierde peso. Pero el punto de partida es opuesto: las
+          <span className="text-slate-300"> SV</span> dependen de la ejecución; las <span className="text-slate-300">AV</span>, de la
+          comercialización de IIC — el pool más relevante para el modelo de plataforma de Inversis.
+        </p>
       </div>
 
       {/* 2) Key line-item trends (full quarterly series, no toggling) */}
